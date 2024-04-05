@@ -24,22 +24,17 @@ export default class Debug_Scene extends Scene {
 	private playerDead: boolean = false;
 	private playerShield: number = 5;
 	private playerinvincible: boolean = false;
-	private MIN_SPAWN_DISTANCE: number = 100;
 	private numAsteroidsDestroyed: number = 0;
 
-	// Create an object pool for our asteroids
-	private MAX_NUM_ASTEROIDS = 6;
-	private INITIAL_NUM_ASTEROIDS = 1;
-	private numAsteroids = 0;
-	private asteroids: Array<Sprite> = new Array(this.MAX_NUM_ASTEROIDS);
+	// TESTA - All asteroids will need to be declared globally. I think I can fix this later by putting this in the AsteroidAI class. Will do another time.
+	// Create an asteroid
+	private asteroid: Sprite
 
 	// Labels for the gui
 	// TESTA - Leaving these here for when we add our UI
 	private planetsLabel: Label;
 
 	// Timers
-	private asteroidTimer: number = 0;
-	private ASTEROID_MAX_TIME: number = 5;	// Spawn an asteroid every 10 seconds
 	private gameEndTimer: number = 0;
 	private GAME_END_MAX_TIME: number = 3;
 
@@ -92,15 +87,29 @@ export default class Debug_Scene extends Scene {
 		// Initialize object pools
 		this.initializeObjectPools();
 
-		// Spawn some asteroids to start the game
-		for(let i = 0; i < this.INITIAL_NUM_ASTEROIDS; i++){
-			this.spawnAsteroid();
-		}
 
+		// TESTA - Here is where we load in the elements. This might be its own function in the final version
+		this.asteroid = this.add.sprite("asteroid", "primary")
+		let asteroid = this.asteroid
+		asteroid.scale = new Vec2(2, 2)
+		asteroid.position = new Vec2(400,300)
+		asteroid.addAI(AsteroidAI)
+		let collider = new Circle(Vec2.ZERO, 50);
+		asteroid.setCollisionShape(collider);
+
+		let dir = Vec2.UP.rotateCCW(Math.PI);
+		asteroid.setAIActive(true, {direction: dir});
+		AsteroidAI.SPEED += this.ASTEROID_SPEED_INC;
+
+		
 		let black_hole = this.add.sprite("black hole", "primary")
-		black_hole.position = new Vec2(300, 300)
+		black_hole.position = new Vec2(200, 300)
 		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
 		black_hole.scale = new Vec2(2, 2)
+
+
+
+
 
 		// Initialize variables
 		AsteroidAI.SPEED = this.ASTEROID_SPEED;
@@ -128,12 +137,7 @@ export default class Debug_Scene extends Scene {
 
 		// Handle screen wrapping
 		this.handleScreenWrap(this.player, viewportCenter, paddedViewportSize);
-
-		for(let asteroid of this.asteroids){
-			if(asteroid.visible){
-				this.handleScreenWrap(asteroid, viewportCenter, paddedViewportSize);
-			}
-		}
+		this.handleScreenWrap(this.asteroid, viewportCenter, paddedViewportSize);
 	}
 
 	/* ########## START SCENE METHODS ########## */
@@ -180,23 +184,7 @@ export default class Debug_Scene extends Scene {
 	 * https://gameprogrammingpatterns.com/object-pool.html
 	 */
 	initializeObjectPools(): void {
-		// Initialize the asteroid object pool
-		for(let i = 0; i < this.asteroids.length; i++){
-			// Load our asteroid sprite
-			this.asteroids[i] = this.add.sprite("asteroid", "primary")
-			// TESTA - Same thing as the black hole. This is scaled now, wont be later.
-			this.asteroids[i].scale = new Vec2(2,2)
-
-			// Make our asteroids inactive by default
-			this.asteroids[i].visible = false;
-
-			// Assign them an asteroid ai
-			this.asteroids[i].addAI(AsteroidAI);
-
-			// Give them a collision shape
-			let collider = new Circle(Vec2.ZERO, 50);
-			this.asteroids[i].setCollisionShape(collider);
-		}
+		// TESTA - Leaving this function in here in case we need to use it later. Maybe.
 	}
 
 
@@ -225,15 +213,8 @@ export default class Debug_Scene extends Scene {
 	 * Updates all of our timers and handles timer related functions
 	 */
 	handleTimers(deltaT: number): void {
-		this.asteroidTimer += deltaT;
 
 		if(this.playerDead) this.gameEndTimer += deltaT;
-
-		if(this.asteroidTimer > this.ASTEROID_MAX_TIME){
-			// Spawn an asteroid at a random location (not near the player)
-			this.asteroidTimer -= this.ASTEROID_MAX_TIME;
-			this.spawnAsteroid();
-		}
 
 		if(this.gameEndTimer > this.GAME_END_MAX_TIME){
 			// End the game
@@ -242,64 +223,7 @@ export default class Debug_Scene extends Scene {
 	}
 
 	handleCollisions(){
-		// If the player is not invincible (e.g. they just got hit by an asteroid last frame),
-		// check for asteroid collisions
-		if(!this.playerinvincible){
-			for(let asteroid of this.asteroids){
-				// If the asteroid is spawned in and it overlaps the player
-				if(asteroid.visible && Debug_Scene.checkAABBtoCircleCollision(<AABB>this.player.collisionShape, <Circle>asteroid.collisionShape)){
-					// Put your code here:
-					asteroid.visible = false
-					this.numAsteroids -= 1
-
-					this.playerinvincible = true
-
-					this.emitter.fireEvent(Homework2Event.PLAYER_DAMAGE, {id: this.player.id, shield: this.playerShield})
-				}
-			}
-		}
-	}
-
-	// HOMEWORK 2 - TODO
-	/**
-	 * This function spawns a new asteroid from our object pool.
-	 * 
-	 * What you'll have to do here is make sure the newly spawned asteroid has a random color,
-	 * chosen from a selection of your 6 favorite colors.
-	 * 
-	 * The asteroid has a color field with type Color, a class that can be found in the Utils folder.
-	 * Check out that class to see how to create colors and access its fields.
-	 */
-	spawnAsteroid(): void {
-		// Find the first viable asteroid
-		let asteroid: Sprite = null;
-
-		for(let a of this.asteroids){
-			if(!a.visible){
-				// We found a dead asteroid
-				asteroid = a;
-				break;
-			}
-		}
-
-		if(asteroid !== null){
-			// Bring this asteroid to life
-			asteroid.visible = true;
-
-			// Extract the size of the viewport
-			let viewportSize = this.viewport.getHalfSize().scaled(2);
-
-			// Loop on position until we're clear of the player
-			asteroid.position = RandUtils.randVec(0, viewportSize.x, 0, viewportSize.y);
-			while(asteroid.position.distanceTo(this.player.position) < this.MIN_SPAWN_DISTANCE){
-				asteroid.position = RandUtils.randVec(0, viewportSize.x, 0, viewportSize.y);
-			}
-
-			// Assign a random direction
-			let dir = Vec2.UP.rotateCCW(Math.random()*Math.PI*2);
-			asteroid.setAIActive(true, {direction: dir});
-			AsteroidAI.SPEED += this.ASTEROID_SPEED_INC;
-		}
+		// TESTA - Here will need a lot of work. We're going to need to make the physics work. Not easy.
 	}
 
 	// HOMEWORK 2 - TODO

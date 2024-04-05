@@ -1,9 +1,9 @@
 import Game from "./Wolfie2D/Loop/Game";
-import MainMenu from "./hw2/Scenes/MainMenu";
+import MainMenu from "./FinProjectImp/Scenes/MainMenu";
 import AABB from "./Wolfie2D/DataTypes/Shapes/AABB";
 import Vec2 from "./Wolfie2D/DataTypes/Vec2";
 import Circle from "./Wolfie2D/DataTypes/Shapes/Circle";
-import Homework2_Scene from "./hw2/Scenes/HW2_Scene";
+import Homework2_Scene from "./FinProjectImp/Scenes/Debug_Scene";
 
 // The main function is your entrypoint into Wolfie2D. Specify your first scene and any options here.
 (function main(){

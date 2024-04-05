@@ -4,7 +4,7 @@ import Layer from "../../Wolfie2D/Scene/Layer";
 import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import { Homework2Event } from "../HW2_Enums";
-import DebugScene from "./HW2_Scene";
+import DebugScene from "./Debug_Scene";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 
 export default class MainMenu extends Scene {
