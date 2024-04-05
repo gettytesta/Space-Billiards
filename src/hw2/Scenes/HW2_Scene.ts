@@ -83,6 +83,8 @@ export default class Homework1_Scene extends Scene {
 		this.load.image("space", "hw2_assets/sprites/space.png");
 
 		/* ##### YOUR CODE GOES BELOW THIS LINE ##### */
+
+		this.load.spritesheet("fleet", "hw2_assets/spritesheets/biwing_spaceship.json")
 	}
 
 	/*
@@ -474,7 +476,18 @@ export default class Homework1_Scene extends Scene {
 				// If the asteroid is spawned in and it overlaps the player
 				if(asteroid.visible && Homework1_Scene.checkAABBtoCircleCollision(<AABB>this.player.collisionShape, <Circle>asteroid.collisionShape)){
 					// Put your code here:
+					asteroid.visible = false
+					this.numAsteroids -= 1
 
+					this.asteroidsLabel.text = `Asteroids: ${this.numAsteroids}`;
+				
+					this.numAsteroidsDestroyed += 1
+					this.playerShield -= 1
+					this.shieldsLabel.text = `Shield: ${this.playerShield}`
+
+					this.playerinvincible = true
+
+					this.emitter.fireEvent(Homework2Event.PLAYER_DAMAGE, {id: this.player.id, shield: this.playerShield})
 				}
 			}
 		}
@@ -519,6 +532,16 @@ export default class Homework1_Scene extends Scene {
 			let dir = Vec2.UP.rotateCCW(Math.random()*Math.PI*2);
 			asteroid.setAIActive(true, {direction: dir});
 			AsteroidAI.SPEED += this.ASTEROID_SPEED_INC;
+
+			// Choose one of 6 colors randomly and set the asteroid's color
+			const six_colors = [[0.116,0.890,0.877],
+								[0.774,0.098,0.980],
+								[0.980,0.127,0.098],
+								[0.171,0.098,0.980],
+								[0.950,0.897,0.314],
+								[0.060,0.480,0.000]];
+			const ast_clr = six_colors[RandUtils.randInt(0,6)];
+			asteroid.color.set(ast_clr[0], ast_clr[1], ast_clr[2]);
 
 			// Update the UI
 			this.numAsteroids += 1;
@@ -569,7 +592,16 @@ export default class Homework1_Scene extends Scene {
 	 */
 	handleScreenWrap(node: GameNode, viewportCenter: Vec2, paddedViewportSize: Vec2): void {
 		// Your code goes here:
-
+		if (node.position.x > viewportCenter.x+(paddedViewportSize.x/2)) {
+			node.position.x = viewportCenter.x-(paddedViewportSize.x/2)
+		} else if (node.position.x < viewportCenter.x-(paddedViewportSize.x/2)) {
+			node.position.x = viewportCenter.x+(paddedViewportSize.x/2)
+		}
+		if (node.position.y > viewportCenter.y+(paddedViewportSize.y/2)) {
+			node.position.y = viewportCenter.y-(paddedViewportSize.y/2)
+		} else if (node.position.y < viewportCenter.y-(paddedViewportSize.y/2)) {
+			node.position.y = viewportCenter.y+(paddedViewportSize.y/2)
+		}
 	}
 
 	// HOMEWORK 2 - TODO
@@ -599,6 +631,44 @@ export default class Homework1_Scene extends Scene {
 	 */
 	static checkAABBtoCircleCollision(aabb: AABB, circle: Circle): boolean {
 		// Your code goes here:
+		// We're going to find the closest point on the AABB to the circle's center
+
+		var closestX;
+		var closestY;
+
+		// Find the pos. of the closest x value on the aabb
+		if (circle.center.x <= aabb.bottomLeft.x) { 
+			// Circle is to the right of the aabb's x range
+			closestX = aabb.bottomLeft.x
+			
+		} else if (circle.center.x >= aabb.bottomRight.x) {
+			// Circle is to the left of the aabb's x range
+			closestX = aabb.bottomRight.x
+		} else {
+			// Circle is inside of the aabb's x range
+			closestX = circle.center.x
+		}
+
+		// Fidn the pos. of the closest y value on the aabb
+		if (circle.center.y <= aabb.topLeft.y) { 
+			// Circle is above the aabb's y range
+			closestY = aabb.topLeft.y;
+			
+		} else if (circle.center.y >= aabb.bottomLeft.y) {
+			// Circle is below aabb's y range
+			closestY = aabb.bottomRight.y
+		} else {
+			// Circle is inside of the aabb's y range
+			closestY = circle.center.y
+		}
+
+		// Find the distance (squared) between the circle's center and the closest point on the aabb
+		var dist_squared = (circle.x-closestX)*(circle.x-closestX) + (circle.y-closestY)*(circle.y-closestY)
+		// Since sqrrt is costly, just compare the squares
+		if (dist_squared <= circle.r*circle.r) {
+			return true;
+		}
+
 		return false;
 	}
 

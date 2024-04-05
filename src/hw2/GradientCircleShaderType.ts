@@ -3,6 +3,7 @@ import Mat4x4 from "../Wolfie2D/DataTypes/Mat4x4";
 import Vec2 from "../Wolfie2D/DataTypes/Vec2";
 import Rect from "../Wolfie2D/Nodes/Graphics/Rect";
 import RectShaderType from "../Wolfie2D/Rendering/WebGLRendering/ShaderTypes/RectShaderType";
+import RandUtils from "../Wolfie2D/Utils/RandUtils";
 
 /**
  * The gradient circle is technically rendered on a quad, and is similar to a rect, so we'll extend the RectShaderType
@@ -50,6 +51,7 @@ export default class GradientCircleShaderType extends RectShaderType {
 		gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 2 * FSIZE, 0 * FSIZE);
 		gl.enableVertexAttribArray(a_Position);
 
+
 		/* ##### UNIFORMS ##### */
 
 		// Get transformation matrix
@@ -73,6 +75,13 @@ export default class GradientCircleShaderType extends RectShaderType {
 		const u_Transform = gl.getUniformLocation(program, "u_Transform");
 		gl.uniformMatrix4fv(u_Transform, false, transformation.toArray());
 
+
+		// TESTA CODE STARTS HERE
+		// Get the uniform that will hold the asteroid color
+		const u_AsteroidColor = gl.getUniformLocation(program, "u_AsteroidColor");
+		gl.uniform4fv(u_AsteroidColor, options.color.toArray());
+
+
 		// Draw the quad
 		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 	}
@@ -86,7 +95,8 @@ export default class GradientCircleShaderType extends RectShaderType {
 		let options: Record<string, any> = {
 			position: gc.position,
 			size: gc.size,
-			rotation: gc.rotation
+			rotation: gc.rotation,
+			color: gc.color,
 		}
 
 		return options;
