@@ -10,9 +10,7 @@ import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import AsteroidAI from "../AI/AsteroidAI";
-import BoidBehavior from "../AI/ShipAI";
-import FlockBehavior from "../AI/FlockBehavior";
-import { Homework2Animations, Homework2Event, Homework2Names, Homework2Shaders } from "../HW2_Enums";
+import { Homework2Event, Homework2Shaders } from "../HW2_Enums";
 import SpaceshipPlayerController from "../AI/SpaceshipPlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
 import GameOver from "./GameOver";
@@ -74,10 +72,6 @@ export default class Homework1_Scene extends Scene {
 
 		// Load in the background image
 		this.load.image("space", "hw2_assets/sprites/space.png");
-
-		/* ##### YOUR CODE GOES BELOW THIS LINE ##### */
-
-		this.load.spritesheet("fleet", "hw2_assets/spritesheets/biwing_spaceship.json")
 	}
 
 	/*
@@ -169,7 +163,7 @@ export default class Homework1_Scene extends Scene {
 		this.player.setCollisionShape(playerCollider)
 
 		// Add a playerController to the player
-		this.player.addAI(SpaceshipPlayerController, {owner: this.player, spawnFleetEventKey: "spawnFleet", initialShield: this.playerShield});
+		this.player.addAI(SpaceshipPlayerController, {owner: this.player, initialShield: this.playerShield});
 	}
 
 	/**

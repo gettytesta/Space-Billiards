@@ -95,11 +95,6 @@ export default class SpaceshipPlayerController implements AI {
 		this.owner.position.add(this.direction.scaled(-this.speed * deltaT));
 
 		Debug.log("player_pos", "Player Position: " + this.owner.position.toString());
-	
-		// If the player clicked, we need to spawn in a fleet member
-		if(Input.isMouseJustPressed()){
-			this.emitter.fireEvent(Homework2Event.SPAWN_FLEET, {position: Input.getGlobalMousePosition()});
-		}
 
 		// Animations
 		if(!this.owner.animation.isPlaying("shield") && !this.owner.animation.isPlaying("explode")){
