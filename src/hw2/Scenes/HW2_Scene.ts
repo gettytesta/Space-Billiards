@@ -31,26 +31,19 @@ export default class Homework1_Scene extends Scene {
 	private MIN_SPAWN_DISTANCE: number = 100;
 	private numAsteroidsDestroyed: number = 0;
 
-	// Create an object pool for our fleet
-	private MAX_FLEET_SIZE = 20;
-	private fleetSize: number = 0;
-	private fleet: Array<AnimatedSprite> = new Array(this.MAX_FLEET_SIZE);
-	private flockControllers: Array<FlockBehavior> = new Array(this.MAX_FLEET_SIZE);
-
-	// Create an object pool for our fleet
+	// Create an object pool for our asteroids
 	private MAX_NUM_ASTEROIDS = 6;
 	private INITIAL_NUM_ASTEROIDS = 1;
 	private numAsteroids = 0;
 	private asteroids: Array<Graphic> = new Array(this.MAX_NUM_ASTEROIDS);
 
-	// Create an object pool for our fleet
+	// Create an object pool for our minerals
 	private MAX_NUM_MINERALS = 20;
 	private minerals: Array<Graphic> = new Array(this.MAX_NUM_MINERALS);
 
 	// Labels for the gui
 	private mineralsLabel: Label;
 	private shieldsLabel: Label;
-	private fleetLabel: Label;
 	private asteroidsLabel: Label;
 
 	// Timers
@@ -125,8 +118,6 @@ export default class Homework1_Scene extends Scene {
 		// Subscribe to events
 		this.receiver.subscribe(Homework2Event.PLAYER_I_FRAMES_END);
 		this.receiver.subscribe(Homework2Event.PLAYER_DEAD);
-		this.receiver.subscribe(Homework2Event.SPAWN_FLEET);
-		this.receiver.subscribe(Homework2Event.SHIP_DEAD);
 	}
 
 	/*
@@ -135,11 +126,6 @@ export default class Homework1_Scene extends Scene {
 	updateScene(deltaT: number){
 		// Handle events we care about
 		this.handleEvents();
-
-		// Update flocks
-		for(let fb of this.flockControllers){
-			fb.update(this.player);
-		}
 
 		this.handleCollisions();
 
@@ -152,12 +138,6 @@ export default class Homework1_Scene extends Scene {
 
 		// Handle screen wrapping
 		this.handleScreenWrap(this.player, viewportCenter, paddedViewportSize);
-
-		for(let ship of this.fleet){
-			if(ship.visible){
-				this.handleScreenWrap(ship, viewportCenter, paddedViewportSize);
-			}
-		}
 
 		for(let asteroid of this.asteroids){
 			if(asteroid.visible){
@@ -211,12 +191,6 @@ export default class Homework1_Scene extends Scene {
 		this.shieldsLabel.setHAlign("left");
 		this.shieldsLabel.textColor = Color.WHITE;
 
-		// Fleet label
-		this.fleetLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(625, 50), text: "Fleet Size: 0"});
-		this.fleetLabel.size.set(200, 50);
-		this.fleetLabel.setHAlign("left");
-		this.fleetLabel.textColor = Color.WHITE;
-
 		// Asteroids label
 		this.asteroidsLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(875, 50), text: "Asteroids: 0"});
 		this.asteroidsLabel.size.set(200, 50);
@@ -230,24 +204,6 @@ export default class Homework1_Scene extends Scene {
 	 * https://gameprogrammingpatterns.com/object-pool.html
 	 */
 	initializeObjectPools(): void {
-		// Initialize the fleet object pool
-		for(let i = 0; i < this.fleet.length; i++){
-			this.fleet[i] = this.add.animatedSprite(Homework2Names.FLEET_SHIP, "primary");
-			this.fleet[i].animation.play(Homework2Animations.SHIP_IDLE);
-			this.fleet[i].scale.set(0.3, 0.3);
-			this.fleet[i].visible = false;
-
-			// Initialize flock behaviors
-			this.flockControllers[i] = new FlockBehavior(this.fleet[i], this.fleet, 150, 50);
-
-			// Add AI to our ship
-			this.fleet[i].addAI(BoidBehavior, {fb: this.flockControllers[i], separationFactor: 3, alignmentFactor: 1, cohesionFactor: 3});
-
-			// Add a collider to our ship
-			let collider = new AABB(Vec2.ZERO, new Vec2(32, 32));
-			this.fleet[i].setCollisionShape(collider);
-		}
-
 		// Initialize the mineral object pool
 		for(let i = 0; i < this.minerals.length; i++){
 			this.minerals[i] = this.add.graphic(GraphicType.RECT, "primary", {position: new Vec2(0, 0), size: new Vec2(32, 32)});
@@ -269,36 +225,6 @@ export default class Homework1_Scene extends Scene {
 			// Give them a collision shape
 			let collider = new Circle(Vec2.ZERO, 50);
 			this.asteroids[i].setCollisionShape(collider);
-		}
-	}
-
-	// Spawns a new ship for your fleet
-	spawnShip(position: Vec2): void {
-		if(this.mineralAmount < 2) return;
-
-		// Find the first viable ship
-		let ship: AnimatedSprite = null;
-
-		for(let s of this.fleet){
-			if(!s.visible){
-				// We found a dead asteroid
-				ship = s;
-				break;
-			}
-		}
-
-		if(ship !== null){
-			// Spawn a ship
-			ship.visible = true;
-			ship.position = position;
-			ship.setAIActive(true, {});
-
-			this.fleetSize += 1;
-			this.mineralAmount -= 2;
-			
-			// Update GUI
-			this.fleetLabel.text = `Fleet: ${this.fleetSize}`;
-			this.mineralsLabel.text = `Minerals: ${this.mineralAmount}`;
 		}
 	}
 
@@ -348,19 +274,6 @@ export default class Homework1_Scene extends Scene {
 			if(event.type === Homework2Event.PLAYER_DEAD){
 				this.playerDead = true;
 			}
-
-			if(event.type === Homework2Event.SPAWN_FLEET){
-				this.spawnShip(event.data.get("position"));
-			}
-
-			if(event.type === Homework2Event.SHIP_DEAD){
-				// Fleet member died, hide them
-				this.fleetSize -= 1;
-				event.data.get("owner").visible = false;
-				
-				// Update te gui
-				this.fleetLabel.text = `Fleet: ${this.fleetSize}`;
-			}
 		}
 	}
 
@@ -391,37 +304,6 @@ export default class Homework1_Scene extends Scene {
 		}
 	}
 
-	// HOMEWORK 2 - TODO
-	/**
-	 * Handles all collisions.
-	 * Collisions only occur between:
-	 * 	-Fleet ships and asteroids
-	 *	-The player and asteroids
-	 * 	-The player and minerals
-	 * 
-	 * The collision type is AABB to Circle for collisions with asteroids.
-	 * 
-	 * Collisions between the player and minerals are already working just fine.
-	 * These are AABB to AABB collisions. You can check out the code for that in the AABB class
-	 * for some inspiration for your own collision detection.
-	 * 
-	 * You'll have to implement collision detection for AABBs and Circles. This is in another TODO,
-	 * but it is used here.
-	 * 
-	 * For this TODO, you'll handle the response to when a player collides with an asteroid.
-	 * When the player collides with an asteroid, several things must happen:
-	 * 
-	 *	1) The asteroid must be "destroyed". We control alive/dead status with the "visible" field.
-	 *	2) The player must be damaged. This has two parts to it.
-	 *		i) The player shield, which is tracked here, must decrease, and the player should become invincible.
-	 *		ii) We must send an event to the EventQueue saying that the player has been damaged. You'll have to go 
-	 			into the SpaceshipPlayerController class and make sure it is  subscribed to these types of events.
-				For event data, we must include the shield level after the player takes damage. This data is
-				important for knowing when the player dies. You'll know yours is working if you go to a game over
-				screen once you lose all of your health.
-		3) The text of the GUI must be updated.
-		4) We must increase the player's score, or numAsteroidsDestroyed
-	 */
 	handleCollisions(){
 		/* ########## DO NOT MODIFY THIS CODE ########## */
 
@@ -436,33 +318,6 @@ export default class Homework1_Scene extends Scene {
 
 				// Update the gui
 				this.mineralsLabel.text = `Minerals: ${this.mineralAmount}`;
-			}
-		}
-
-		// Check for collisions of fleet with asteroids
-		for(let asteroid of this.asteroids){
-			// If the asteroid is spawned
-			if(asteroid.visible){
-				for(let ship of this.fleet){
-					// If the ship is spawned, isn't already dying, and overlaps the asteroid
-					if(ship.visible &&
-						!ship.animation.isPlaying("explode") && 
-						Homework1_Scene.checkAABBtoCircleCollision(<AABB>ship.collisionShape, <Circle>asteroid.collisionShape)
-					){
-						// Kill asteroid
-						asteroid.visible = false;
-						this.numAsteroids -= 1;
-
-						// Update the gui
-						this.asteroidsLabel.text = `Asteroids: ${this.numAsteroids}`;
-
-						// Send out an event to destroy the ship
-						this.emitter.fireEvent(Homework2Event.SHIP_DAMAGE, {id: ship.id});
-
-						// Exit early - we only need to destroy one ship
-						break;
-					}
-				}
 			}
 		}
 
