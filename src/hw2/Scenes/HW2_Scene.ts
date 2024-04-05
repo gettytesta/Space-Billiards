@@ -14,6 +14,7 @@ import { Homework2Event, Homework2Shaders } from "../HW2_Enums";
 import SpaceshipPlayerController from "../AI/SpaceshipPlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
 import GameOver from "./GameOver";
+import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 
 /**
  * In Wolfie2D, custom scenes extend the original scene class.
@@ -25,7 +26,6 @@ export default class Homework1_Scene extends Scene {
 	private playerDead: boolean = false;
 	private playerShield: number = 5;
 	private playerinvincible: boolean = false;
-	private mineralAmount: number = 4;
 	private MIN_SPAWN_DISTANCE: number = 100;
 	private numAsteroidsDestroyed: number = 0;
 
@@ -33,22 +33,15 @@ export default class Homework1_Scene extends Scene {
 	private MAX_NUM_ASTEROIDS = 6;
 	private INITIAL_NUM_ASTEROIDS = 1;
 	private numAsteroids = 0;
-	private asteroids: Array<Graphic> = new Array(this.MAX_NUM_ASTEROIDS);
-
-	// Create an object pool for our minerals
-	private MAX_NUM_MINERALS = 20;
-	private minerals: Array<Graphic> = new Array(this.MAX_NUM_MINERALS);
+	private asteroids: Array<Sprite> = new Array(this.MAX_NUM_ASTEROIDS);
 
 	// Labels for the gui
-	private mineralsLabel: Label;
 	private shieldsLabel: Label;
 	private asteroidsLabel: Label;
 
 	// Timers
 	private asteroidTimer: number = 0;
 	private ASTEROID_MAX_TIME: number = 5;	// Spawn an asteroid every 10 seconds
-	private mineralTimer: number = 0;
-	private MINERAL_MAX_TIME: number = 5; // Spawn a mineral every 5 seconds
 	private gameEndTimer: number = 0;
 	private GAME_END_MAX_TIME: number = 3;
 
@@ -59,16 +52,15 @@ export default class Homework1_Scene extends Scene {
 
 	// HOMEWORK 2 - TODO
 	/*
-		You'll want to be sure to load in your own sprite here
-	*/
-	/*
 	 * loadScene() overrides the parent class method. It allows us to load in custom assets for
 	 * use in our scene.
 	 */
 	loadScene(){
-		/* ##### DO NOT MODIFY ##### */
 		// Load in the player spaceship spritesheet
 		this.load.spritesheet("player", "hw2_assets/spritesheets/player_spaceship.json");
+
+		// Load in the asteroid sprite
+		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
 
 		// Load in the background image
 		this.load.image("space", "hw2_assets/sprites/space.png");
@@ -140,8 +132,6 @@ export default class Homework1_Scene extends Scene {
 		}
 	}
 
-	/* #################### CUSTOM METHODS #################### */
-
 	/* ########## START SCENE METHODS ########## */
 	/**
 	 * Creates and sets up our player object
@@ -173,12 +163,6 @@ export default class Homework1_Scene extends Scene {
 		// UILayer stuff
 		this.addUILayer("ui");
 
-		// Minerals label
-		this.mineralsLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(125, 50), text: `Minerals: ${this.mineralAmount}`});
-		this.mineralsLabel.size.set(200, 50);
-		this.mineralsLabel.setHAlign("left");
-		this.mineralsLabel.textColor = Color.WHITE;
-
 		// Shields label
 		this.shieldsLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(375, 50), text: `Shield: ${this.playerShield}`});
 		this.shieldsLabel.size.set(200, 50);
@@ -198,17 +182,10 @@ export default class Homework1_Scene extends Scene {
 	 * https://gameprogrammingpatterns.com/object-pool.html
 	 */
 	initializeObjectPools(): void {
-		// Initialize the mineral object pool
-		for(let i = 0; i < this.minerals.length; i++){
-			this.minerals[i] = this.add.graphic(GraphicType.RECT, "primary", {position: new Vec2(0, 0), size: new Vec2(32, 32)});
-			this.minerals[i].visible = false;
-		}
-
 		// Initialize the asteroid object pool
 		for(let i = 0; i < this.asteroids.length; i++){
-			this.asteroids[i] = this.add.graphic(GraphicType.RECT, "primary", {position: new Vec2(0, 0), size: new Vec2(100, 100)});
-			// Use our custom shader for the asteroids
-			this.asteroids[i].useCustomShader(Homework2Shaders.GRADIENT_CIRCLE);
+			// Load our asteroid sprite
+			this.asteroids[i] = this.add.sprite("asteroid", "primary")
 
 			// Make our asteroids inactive by default
 			this.asteroids[i].visible = false;
@@ -222,34 +199,7 @@ export default class Homework1_Scene extends Scene {
 		}
 	}
 
-	// Spawns a new mineral into the world
-	spawnMineral(): void {
-		// Find the first viable mineral
-		let mineral: Graphic = null;
 
-		for(let m of this.minerals){
-			if(!m.visible){
-				// We found a dead asteroid
-				mineral = m;
-				break;
-			}
-		}
-
-		if(mineral !== null){
-			// Bring this mineral to life
-			mineral.visible = true;
-
-			let viewportSize = this.viewport.getHalfSize().scaled(2);
-			// Loop on position until we're clear of the player
-			mineral.position = RandUtils.randVec(0, viewportSize.x, 0, viewportSize.y);
-
-			while(mineral.position.distanceTo(this.player.position) < this.MIN_SPAWN_DISTANCE){
-				mineral.position = RandUtils.randVec(0, viewportSize.x, 0, viewportSize.y);
-			}
-		}
-	}
-
-	/* ############################## */
 
 	/* ########## UPDATE SCENE METHODS ########## */
 	
@@ -276,7 +226,6 @@ export default class Homework1_Scene extends Scene {
 	 */
 	handleTimers(deltaT: number): void {
 		this.asteroidTimer += deltaT;
-		this.mineralTimer += deltaT;
 
 		if(this.playerDead) this.gameEndTimer += deltaT;
 
@@ -286,12 +235,6 @@ export default class Homework1_Scene extends Scene {
 			this.spawnAsteroid();
 		}
 
-		if(this.mineralTimer > this.MINERAL_MAX_TIME){
-			// Spawn a mineral at a random location (not near the player)
-			this.mineralTimer -= this.MINERAL_MAX_TIME;
-			this.spawnMineral();
-		}
-
 		if(this.gameEndTimer > this.GAME_END_MAX_TIME){
 			// End the game
 			this.sceneManager.changeScene(GameOver, {score: this.numAsteroidsDestroyed}, {});
@@ -299,25 +242,6 @@ export default class Homework1_Scene extends Scene {
 	}
 
 	handleCollisions(){
-		/* ########## DO NOT MODIFY THIS CODE ########## */
-
-		// Check for mineral collisions
-		for(let mineral of this.minerals){
-			if(mineral.visible && this.player.collisionShape.overlaps(mineral.boundary)){
-				// A collision happened - destroy the mineral
-				mineral.visible = false;
-
-				// Increase the minerals available to the player
-				this.mineralAmount += 1;
-
-				// Update the gui
-				this.mineralsLabel.text = `Minerals: ${this.mineralAmount}`;
-			}
-		}
-
-		/* ########## #################### ########## */
-		/* ########## YOU CAN CHANGE THE CODE BELOW THIS LINE ########## */
-
 		// If the player is not invincible (e.g. they just got hit by an asteroid last frame),
 		// check for asteroid collisions
 		if(!this.playerinvincible){
@@ -354,7 +278,7 @@ export default class Homework1_Scene extends Scene {
 	 */
 	spawnAsteroid(): void {
 		// Find the first viable asteroid
-		let asteroid: Graphic = null;
+		let asteroid: Sprite = null;
 
 		for(let a of this.asteroids){
 			if(!a.visible){
@@ -381,16 +305,6 @@ export default class Homework1_Scene extends Scene {
 			let dir = Vec2.UP.rotateCCW(Math.random()*Math.PI*2);
 			asteroid.setAIActive(true, {direction: dir});
 			AsteroidAI.SPEED += this.ASTEROID_SPEED_INC;
-
-			// Choose one of 6 colors randomly and set the asteroid's color
-			const six_colors = [[0.116,0.890,0.877],
-								[0.774,0.098,0.980],
-								[0.980,0.127,0.098],
-								[0.171,0.098,0.980],
-								[0.950,0.897,0.314],
-								[0.060,0.480,0.000]];
-			const ast_clr = six_colors[RandUtils.randInt(0,6)];
-			asteroid.color.set(ast_clr[0], ast_clr[1], ast_clr[2]);
 
 			// Update the UI
 			this.numAsteroids += 1;
