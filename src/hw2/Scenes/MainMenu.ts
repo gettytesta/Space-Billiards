@@ -4,7 +4,7 @@ import Layer from "../../Wolfie2D/Scene/Layer";
 import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import { Homework2Event } from "../HW2_Enums";
-import Homework1_Scene from "./HW2_Scene";
+import DebugScene from "./HW2_Scene";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 
 export default class MainMenu extends Scene {
@@ -103,7 +103,7 @@ export default class MainMenu extends Scene {
             console.log(event);
 
             if(event.type === Homework2Event.PLAY_GAME){
-                this.sceneManager.changeScene(Homework1_Scene, {});
+                this.sceneManager.changeScene(DebugScene, {});
             }
 
             if(event.type === Homework2Event.CONTROLS){

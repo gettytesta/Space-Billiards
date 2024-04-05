@@ -1,7 +1,4 @@
 import Game from "./Wolfie2D/Loop/Game";
-import Registry from "./Wolfie2D/Registry/Registry";
-import { Homework2Shaders } from "./hw2/HW2_Enums";
-import GradientCircleShaderType from "./hw2/GradientCircleShaderType";
 import MainMenu from "./hw2/Scenes/MainMenu";
 import AABB from "./Wolfie2D/DataTypes/Shapes/AABB";
 import Vec2 from "./Wolfie2D/DataTypes/Vec2";
@@ -27,16 +24,6 @@ import Homework2_Scene from "./hw2/Scenes/HW2_Scene";
         useWebGL: true,                        // Tell the game we want to use webgl
         showDebug: false                       // Whether to show debug messages. You can change this to true if you want
     }
-
-    // We have a custom shader, so lets add it to the registry and preload it
-    // The registry essentially just ensures that we can locate items by name later, rather than needing
-    // the class constructor. Here, we additionally make sure to preload the data so our
-    // shader is available throughout the application
-    Registry.shaders.registerAndPreloadItem(
-        Homework2Shaders.GRADIENT_CIRCLE,   // The key of the shader program
-        GradientCircleShaderType,           // The constructor of the shader program
-        "hw2_assets/shaders/gradient_circle.vshader",   // The path to the vertex shader
-        "hw2_assets/shaders/gradient_circle.fshader");  // the path to the fragment shader
 
     // Create a game with the options specified
     const game = new Game(options);

@@ -1,8 +1,6 @@
 import AABB from "../../Wolfie2D/DataTypes/Shapes/AABB";
 import Vec2 from "../../Wolfie2D/DataTypes/Vec2";
 import GameNode from "../../Wolfie2D/Nodes/GameNode";
-import Graphic from "../../Wolfie2D/Nodes/Graphic";
-import { GraphicType } from "../../Wolfie2D/Nodes/Graphics/GraphicTypes";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 import { UIElementType } from "../../Wolfie2D/Nodes/UIElements/UIElementTypes";
@@ -10,7 +8,7 @@ import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import AsteroidAI from "../AI/AsteroidAI";
-import { Homework2Event, Homework2Shaders } from "../HW2_Enums";
+import { Homework2Event } from "../HW2_Enums";
 import SpaceshipPlayerController from "../AI/SpaceshipPlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
 import GameOver from "./GameOver";
@@ -20,7 +18,7 @@ import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
  * In Wolfie2D, custom scenes extend the original scene class.
  * This gives us access to lifecycle methods to control our game.
  */
-export default class Homework1_Scene extends Scene {
+export default class Debug_Scene extends Scene {
 	// Here we define member variables of our game, and object pools for adding in game objects
 	private player: AnimatedSprite;
 	private playerDead: boolean = false;
@@ -36,8 +34,8 @@ export default class Homework1_Scene extends Scene {
 	private asteroids: Array<Sprite> = new Array(this.MAX_NUM_ASTEROIDS);
 
 	// Labels for the gui
-	private shieldsLabel: Label;
-	private asteroidsLabel: Label;
+	// TESTA - Leaving these here for when we add our UI
+	private planetsLabel: Label;
 
 	// Timers
 	private asteroidTimer: number = 0;
@@ -59,8 +57,9 @@ export default class Homework1_Scene extends Scene {
 		// Load in the player spaceship spritesheet
 		this.load.spritesheet("player", "hw2_assets/spritesheets/player_spaceship.json");
 
-		// Load in the asteroid sprite
+		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
+		this.load.image("black hole", "hw2_assets/sprites/Black Hole TEMP.png")
 
 		// Load in the background image
 		this.load.image("space", "hw2_assets/sprites/space.png");
@@ -97,6 +96,11 @@ export default class Homework1_Scene extends Scene {
 		for(let i = 0; i < this.INITIAL_NUM_ASTEROIDS; i++){
 			this.spawnAsteroid();
 		}
+
+		let black_hole = this.add.sprite("black hole", "primary")
+		black_hole.position = new Vec2(300, 300)
+		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
+		black_hole.scale = new Vec2(2, 2)
 
 		// Initialize variables
 		AsteroidAI.SPEED = this.ASTEROID_SPEED;
@@ -164,16 +168,10 @@ export default class Homework1_Scene extends Scene {
 		this.addUILayer("ui");
 
 		// Shields label
-		this.shieldsLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(375, 50), text: `Shield: ${this.playerShield}`});
-		this.shieldsLabel.size.set(200, 50);
-		this.shieldsLabel.setHAlign("left");
-		this.shieldsLabel.textColor = Color.WHITE;
-
-		// Asteroids label
-		this.asteroidsLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(875, 50), text: "Asteroids: 0"});
-		this.asteroidsLabel.size.set(200, 50);
-		this.asteroidsLabel.setHAlign("left");
-		this.asteroidsLabel.textColor = Color.WHITE;
+		this.planetsLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(125, 40), text: `Planets Left: 1`});
+		this.planetsLabel.size.set(200, 50);
+		this.planetsLabel.setHAlign("left");
+		this.planetsLabel.textColor = Color.WHITE;
 	}
 
 	/**
@@ -186,6 +184,8 @@ export default class Homework1_Scene extends Scene {
 		for(let i = 0; i < this.asteroids.length; i++){
 			// Load our asteroid sprite
 			this.asteroids[i] = this.add.sprite("asteroid", "primary")
+			// TESTA - Same thing as the black hole. This is scaled now, wont be later.
+			this.asteroids[i].scale = new Vec2(2,2)
 
 			// Make our asteroids inactive by default
 			this.asteroids[i].visible = false;
@@ -247,16 +247,10 @@ export default class Homework1_Scene extends Scene {
 		if(!this.playerinvincible){
 			for(let asteroid of this.asteroids){
 				// If the asteroid is spawned in and it overlaps the player
-				if(asteroid.visible && Homework1_Scene.checkAABBtoCircleCollision(<AABB>this.player.collisionShape, <Circle>asteroid.collisionShape)){
+				if(asteroid.visible && Debug_Scene.checkAABBtoCircleCollision(<AABB>this.player.collisionShape, <Circle>asteroid.collisionShape)){
 					// Put your code here:
 					asteroid.visible = false
 					this.numAsteroids -= 1
-
-					this.asteroidsLabel.text = `Asteroids: ${this.numAsteroids}`;
-				
-					this.numAsteroidsDestroyed += 1
-					this.playerShield -= 1
-					this.shieldsLabel.text = `Shield: ${this.playerShield}`
 
 					this.playerinvincible = true
 
@@ -305,10 +299,6 @@ export default class Homework1_Scene extends Scene {
 			let dir = Vec2.UP.rotateCCW(Math.random()*Math.PI*2);
 			asteroid.setAIActive(true, {direction: dir});
 			AsteroidAI.SPEED += this.ASTEROID_SPEED_INC;
-
-			// Update the UI
-			this.numAsteroids += 1;
-			this.asteroidsLabel.text = `Asteroids: ${this.numAsteroids}`;
 		}
 	}
 
