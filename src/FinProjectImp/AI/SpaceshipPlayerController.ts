@@ -27,6 +27,11 @@ export default class SpaceshipPlayerController implements AI {
 	private receiver: Receiver;
 	private emitter: Emitter;
 
+	//Gleb Changes - we need to have a way of measuring the Vector between the mouse start dragging, and end dragging
+	private mouseDragging: boolean = false; 
+	private mouseStart: Vec2;
+	private mouseEnd: Vec2;
+
 	// HOMEWORK 2 - TODO
 	/**
 	 * This method initializes all variables inside of this AI class, and sets
@@ -77,6 +82,28 @@ export default class SpaceshipPlayerController implements AI {
 		}
 
 		// We need to handle player input
+		//GLEB - Dragging Demo
+		if(Input.isMousePressed()){
+			console.log("Mouse is Clicked")
+			if(!this.mouseDragging)
+			{
+				this.mouseDragging=true
+				this.mouseStart = Input.getMousePressPosition()
+				console.log(this.mouseStart)
+			}	
+		}
+		else
+		{
+			if(this.mouseDragging)
+			{
+				this.mouseDragging= false	
+				this.mouseEnd = Input.getMousePosition()
+				console.log(this.mouseEnd)
+			}
+		}
+			
+
+		
 		let forwardAxis = (Input.isPressed('forward') ? 1 : 0) + (Input.isPressed('backward') ? -1 : 0);
 		let turnDirection = (Input.isPressed('turn_ccw') ? -1 : 0) + (Input.isPressed('turn_cw') ? 1 : 0);
 
