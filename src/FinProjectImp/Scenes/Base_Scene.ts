@@ -68,8 +68,6 @@ export default class Base_Scene extends Scene {
 	 * use in our scene.
 	 */
 	loadScene(){
-		console.log(this.sceneOptions)
-
 		// Load in the planet spritesheet
 		this.load.spritesheet("player", "hw2_assets/spritesheets/player_planet.json");
 
