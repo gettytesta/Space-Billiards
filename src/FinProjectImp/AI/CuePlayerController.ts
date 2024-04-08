@@ -7,9 +7,9 @@ import Receiver from "../../Wolfie2D/Events/Receiver";
 import Input from "../../Wolfie2D/Input/Input";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
-import { Homework2Event } from "../HW2_Enums";
+import { GameEvents } from "../HW2_Enums";
 
-export default class SpaceshipPlayerController implements AI{
+export default class CuePlayerController implements AI{
 	// We want to be able to control our owner, so keep track of them
 	private owner: AnimatedSprite;
 
@@ -21,7 +21,9 @@ export default class SpaceshipPlayerController implements AI{
 	private ACCELERATION: number = 4;
 	private rotationSpeed: number;
 
-	private isDead: boolean = false;
+	// TESTA - hitPlanet is for any collision that would make the cue(s) explode
+	private hitPlanet: boolean = false;
+	private hitBlackHole: boolean = false;
 
 	// A receiver and emitter to hook into the event queue
 	private receiver: Receiver;
@@ -56,30 +58,31 @@ export default class SpaceshipPlayerController implements AI{
 		this.receiver = new Receiver();
 		this.emitter = new Emitter();
 
-		this.receiver.subscribe(Homework2Event.PLAYER_DAMAGE)
-		this.receiver.subscribe(Homework2Event.FIRE_BALL)
+		this.receiver.subscribe(GameEvents.PLANET_HIT_BLACKHOLE)
+		this.receiver.subscribe(GameEvents.PLANET_COLLISION)
+		this.receiver.subscribe(GameEvents.FIRE_BALL)
 	}
 
 	activate(options: Record<string, any>){};
 
 	handleEvent(event: GameEvent): void {
 		// We need to handle animations when we get hurt
-		if(event.type === Homework2Event.PLAYER_DAMAGE){
-			this.owner.animation.play("explode", false, Homework2Event.PLAYER_DEAD);
-			this.isDead = true;
+		if(event.type === GameEvents.PLANET_HIT_BLACKHOLE){
+			this.owner.animation.play("explode", true);
+			this.hitBlackHole = true;
 		}
 	}
 
 	update(deltaT: number): void {
 		
-		if(this.isDead) return;
+		if(this.hitPlanet) return;
 		
 		while(this.receiver.hasNextEvent()){
 			this.handleEvent(this.receiver.getNextEvent());
 		}
 
 		// We need to handle player input
-		//GLEB - Dragging Demo
+		// GLEB - Dragging Demo
 		if(Input.isMousePressed()){
 			console.log("Mouse is Clicked")
 			if(!this.mouseDragging)
@@ -122,12 +125,8 @@ export default class SpaceshipPlayerController implements AI{
 		Debug.log("player_pos", "Player Position: " + this.owner.position.toString());
 
 		// Animations
-		if(!this.owner.animation.isPlaying("shield") && !this.owner.animation.isPlaying("explode")){
-			if(this.speed > 0){
-				this.owner.animation.playIfNotAlready("boost");
-			} else {
-				this.owner.animation.playIfNotAlready("idle");
-			}
+		if(!this.owner.animation.isPlaying("explode")){
+			this.owner.animation.playIfNotAlready("idle");
 		}
 	}
 } 

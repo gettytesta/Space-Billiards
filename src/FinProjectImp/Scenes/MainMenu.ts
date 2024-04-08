@@ -3,7 +3,7 @@ import { UIElementType } from "../../Wolfie2D/Nodes/UIElements/UIElementTypes";
 import Layer from "../../Wolfie2D/Scene/Layer";
 import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
-import { Homework2Event } from "../HW2_Enums";
+import { GameEvents } from "../HW2_Enums";
 import DebugScene from "./Debug_Scene";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 
@@ -27,7 +27,7 @@ export default class MainMenu extends Scene {
         play.borderWidth = 2;
         play.borderColor = Color.WHITE;
         play.backgroundColor = Color.TRANSPARENT;
-        play.onClickEventId = Homework2Event.PLAY_GAME;
+        play.onClickEventId = GameEvents.PLAY_GAME;
 
         // Add controls button
         const controls = this.add.uiElement(UIElementType.BUTTON, "mainMenu", {position: new Vec2(center.x, center.y), text: "Controls"});
@@ -35,7 +35,7 @@ export default class MainMenu extends Scene {
         controls.borderWidth = 2;
         controls.borderColor = Color.WHITE;
         controls.backgroundColor = Color.TRANSPARENT;
-        controls.onClickEventId = Homework2Event.CONTROLS;
+        controls.onClickEventId = GameEvents.CONTROLS;
 
         // Add event button
         const about = this.add.uiElement(UIElementType.BUTTON, "mainMenu", {position: new Vec2(center.x, center.y + 100), text: "About"});
@@ -43,7 +43,7 @@ export default class MainMenu extends Scene {
         about.borderWidth = 2;
         about.borderColor = Color.WHITE;
         about.backgroundColor = Color.TRANSPARENT;
-        about.onClickEventId = Homework2Event.ABOUT;
+        about.onClickEventId = GameEvents.ABOUT;
 
         // Controls screen
         this.controls = this.addUILayer("controls");
@@ -61,7 +61,7 @@ export default class MainMenu extends Scene {
         back.borderWidth = 2;
         back.borderColor = Color.WHITE;
         back.backgroundColor = Color.TRANSPARENT;
-        back.onClickEventId = Homework2Event.MENU;
+        back.onClickEventId = GameEvents.MENU;
 
         // About screen
         this.about = this.addUILayer("about");
@@ -87,13 +87,13 @@ export default class MainMenu extends Scene {
         aboutBack.borderWidth = 2;
         aboutBack.borderColor = Color.WHITE;
         aboutBack.backgroundColor = Color.TRANSPARENT;
-        aboutBack.onClickEventId = Homework2Event.MENU;
+        aboutBack.onClickEventId = GameEvents.MENU;
 
         // Subscribe to the button events
-        this.receiver.subscribe(Homework2Event.PLAY_GAME);
-        this.receiver.subscribe(Homework2Event.CONTROLS);
-        this.receiver.subscribe(Homework2Event.ABOUT);
-        this.receiver.subscribe(Homework2Event.MENU)
+        this.receiver.subscribe(GameEvents.PLAY_GAME);
+        this.receiver.subscribe(GameEvents.CONTROLS);
+        this.receiver.subscribe(GameEvents.ABOUT);
+        this.receiver.subscribe(GameEvents.MENU)
     }
 
     updateScene(){
@@ -102,21 +102,21 @@ export default class MainMenu extends Scene {
 
             console.log(event);
 
-            if(event.type === Homework2Event.PLAY_GAME){
+            if(event.type === GameEvents.PLAY_GAME){
                 this.sceneManager.changeScene(DebugScene, {});
             }
 
-            if(event.type === Homework2Event.CONTROLS){
+            if(event.type === GameEvents.CONTROLS){
                 this.controls.setHidden(false);
                 this.mainMenu.setHidden(true);
             }
 
-            if(event.type === Homework2Event.ABOUT){
+            if(event.type === GameEvents.ABOUT){
                 this.about.setHidden(false);
                 this.mainMenu.setHidden(true);
             }
 
-            if(event.type === Homework2Event.MENU){
+            if(event.type === GameEvents.MENU){
                 this.mainMenu.setHidden(false);
                 this.controls.setHidden(true);
                 this.about.setHidden(true);

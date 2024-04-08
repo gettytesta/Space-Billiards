@@ -1,4 +1,4 @@
-export enum Homework2Event {
+export enum GameEvents {
 	PLAY_GAME = "PLAY_GAME",
 	CONTROLS = "CONTROLS",
 	ABOUT = "ABOUT",
@@ -6,12 +6,11 @@ export enum Homework2Event {
 	FIRE_BALL = "FIRE_BALL",
 
 	PLANET_COLLISION = "PLANET_COLLISION",
-
-	PLAYER_DAMAGE = "PLAYER_DAMAGE",
-	PLAYER_DEAD = "PLAYER_DEAD",
+	PLANET_HIT_BLACKHOLE = "PLANET_HIT_BLACKHOLE",
 }
 
-export enum Homework2Animations {
-	SHIP_IDLE = "idle",
-	SHIP_DIE = "explode",
+export enum GameAnimations {
+	// TESTA - These will be changed later on
+	CUE_IDLE = "idle",
+	CUE_COLLISION = "explode",
 }
