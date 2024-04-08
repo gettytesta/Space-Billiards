@@ -13,6 +13,8 @@ import SpaceshipPlayerController from "../AI/SpaceshipPlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
 import GameOver from "./GameOver";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
+import Layer from "../../Wolfie2D/Scene/Layer";
+
 
 /**
  * In Wolfie2D, custom scenes extend the original scene class.
@@ -20,6 +22,7 @@ import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
  */
 export default class Debug_Scene extends Scene {
 	// Here we define member variables of our game, and object pools for adding in game objects
+	
 	private player: AnimatedSprite;
 	private playerDead: boolean = false;
 	private playerShield: number = 5;
@@ -43,6 +46,9 @@ export default class Debug_Scene extends Scene {
 	private ASTEROID_SPEED: number = 100;
 	private ASTEROID_SPEED_INC: number = 10;
 
+	//Gleb - These are some UI components that will be useful for handling fire and eventually switching between balls
+	private uiComponents: Layer;
+
 	// HOMEWORK 2 - TODO
 	/*
 	 * loadScene() overrides the parent class method. It allows us to load in custom assets for
@@ -65,6 +71,17 @@ export default class Debug_Scene extends Scene {
 	 * Everything here happens strictly before update
 	 */
 	startScene(){
+		//Gleb - Defining the UI Layer that will be used for actually Firing the Ship
+		const center = this.viewport.getCenter();
+
+        // The main menu
+        this.uiComponents = this.addUILayer("fireButton");
+		const fire = this.add.uiElement(UIElementType.BUTTON, "fireButton", {position: new Vec2(center.x, center.y - 100), text: "Fire!"});
+        fire.size.set(200, 50);
+        fire.borderWidth = 2;
+        fire.borderColor = Color.WHITE;
+        fire.backgroundColor = Color.TRANSPARENT;
+        fire.onClickEventId = Homework2Event.FIRE_BALL;
 		/* ##### DO NOT MODIFY ##### */
 		// Create a background layer
 		this.addLayer("background", 0);
@@ -148,7 +165,7 @@ export default class Debug_Scene extends Scene {
 		// Add in the player as an animated sprite
 		// We give it the key specified in our load function and the name of the layer
 		this.player = this.add.animatedSprite("player", "primary");
-		
+		this.player.addPhysics()
 		// Set the player's position to the middle of the screen, and scale it down
 		this.player.position.set(this.viewport.getCenter().x, this.viewport.getCenter().y);
 		this.player.scale.set(0.5, 0.5);
