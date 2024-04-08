@@ -142,7 +142,7 @@ export default class Base_Scene extends Scene {
 	 * Creates and sets up our player object
 	 */
 	initializeObjects(levelNumber: number): void {
-		var level : Level = Levels.getLevel1(this.viewport);
+		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
 		this.player = this.add.animatedSprite("player", "primary");
 		this.player.addPhysics()
