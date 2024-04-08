@@ -21,7 +21,10 @@ export default class Levels {
 	static getLevel1(viewport:Viewport) : Level {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var asteroids : Array<Asteroid> = [new Asteroid(viewport.getCenter().clone(), 10)]
-		var wormholePairs : Array<WormholePair> = [new WormholePair(new Vec2(600, 700), new Vec2(600, 200))]
+		var wormholePairs : Array<WormholePair> = [
+			new WormholePair(new Vec2(600, 700), new Vec2(600, 200)),
+			new WormholePair(new Vec2(800, 700), new Vec2(300, 200)),
+		]
 		var cp = new Vec2(viewport.getCenter().x+400, viewport.getCenter().y)
 		return new Level(bhp, asteroids, wormholePairs, cp);
 	}

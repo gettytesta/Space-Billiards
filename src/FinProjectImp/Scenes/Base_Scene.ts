@@ -74,7 +74,10 @@ export default class Base_Scene extends Scene {
 
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
-		this.load.image("wormhole", "hw2_assets/sprites/wormhole.png")
+		this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
+		this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
+		this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
+		this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
 		this.load.image("black hole", "hw2_assets/sprites/Black Hole TEMP.png")
 
 		// Load in the background image
@@ -151,11 +154,11 @@ export default class Base_Scene extends Scene {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
 		this.player = this.add.animatedSprite("player", "primary");
-		this.player.addPhysics()
+		this.player.addPhysics();
 		this.player.position = level.cue_pos;
 		this.player.animation.play("idle");
-		let playerCollider = new Circle(Vec2.ZERO, 32)
-		this.player.setCollisionShape(playerCollider)
+		let playerCollider = new Circle(Vec2.ZERO, 32);
+		this.player.setCollisionShape(playerCollider);
 		this.player.addAI(CuePlayerController, {owner: this.player});
 
 		for (let asteroid of level.asteroids) {
@@ -167,9 +170,13 @@ export default class Base_Scene extends Scene {
 			this.asteroids.push(currAsteroid)
 		}
 
+		let colorIndex = 0
+		let colors = ["white", "red", "blue", "green"]
 		for (let wormholePair of level.wormholePairs) {
+			let color = colors[colorIndex % (colors.length+1)]
+			colorIndex++
 			for (let i of [0, 1]) {
-				let currWormhole = this.add.sprite("wormhole", "primary")
+				let currWormhole = this.add.sprite("wormhole_" + color, "primary")
 				let wScale = .3
 				currWormhole.scale = new Vec2(wScale, wScale);
 				currWormhole.position = wormholePair.positions[i]
