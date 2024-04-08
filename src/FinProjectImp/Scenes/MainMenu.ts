@@ -4,9 +4,7 @@ import Layer from "../../Wolfie2D/Scene/Layer";
 import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import { GameEvents } from "../HW2_Enums";
-import DebugScene from "./Debug_Scene";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
-import Stage1_Scene from "./Levels";
 import Base_Scene from "./Base_Scene";
 
 export default class MainMenu extends Scene {
