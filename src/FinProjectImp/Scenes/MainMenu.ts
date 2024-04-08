@@ -6,6 +6,8 @@ import Color from "../../Wolfie2D/Utils/Color";
 import { GameEvents } from "../HW2_Enums";
 import DebugScene from "./Debug_Scene";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
+import Stage1_Scene from "./Levels";
+import Base_Scene from "./Base_Scene";
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
@@ -103,7 +105,7 @@ export default class MainMenu extends Scene {
             console.log(event);
 
             if(event.type === GameEvents.PLAY_GAME){
-                this.sceneManager.changeScene(DebugScene, {});
+                this.sceneManager.changeScene(Base_Scene, {});
             }
 
             if(event.type === GameEvents.CONTROLS){
