@@ -8,8 +8,6 @@ export enum Homework2Event {
 	PLAYER_DAMAGE = "PLAYER_DAMAGE",
 	PLAYER_I_FRAMES_END = "PLAYER_I_FRAMES_END",
 	PLAYER_DEAD = "PLAYER_DEAD",
-	SHIP_DAMAGE = "SHIP_DAMAGE",
-	SHIP_DEAD = "SHIP_DEAD"
 }
 
 export enum Homework2Animations {

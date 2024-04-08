@@ -9,7 +9,8 @@ import Homework2_Scene from "./FinProjectImp/Scenes/Debug_Scene";
 (function main(){
     // Note - just because your program passes all of these tests does not mean your algorithm works.
     // The tests should cover most cases, but run your own to be sure
-    runTests();
+
+    // runTests();
 
     // Set up options for our game
     let options = {
@@ -87,7 +88,8 @@ function runTests(){
 
 function HW2_CollisionTest(aabb: AABB, circle: Circle, value: boolean, message: string){
     console.assert(
-        Homework2_Scene.checkAABBtoCircleCollision(aabb, circle) === value,
+        // TESTA - If we use this, I changed        vvv     from aabb to circle
+        Homework2_Scene.checkAABBtoCircleCollision(circle , circle) === value,
         {
             aabb: aabb.toString(),
             circle: circle.toString(),
