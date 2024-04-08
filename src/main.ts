@@ -3,7 +3,7 @@ import MainMenu from "./FinProjectImp/Scenes/MainMenu";
 import AABB from "./Wolfie2D/DataTypes/Shapes/AABB";
 import Vec2 from "./Wolfie2D/DataTypes/Vec2";
 import Circle from "./Wolfie2D/DataTypes/Shapes/Circle";
-import Debug_Scene from "./FinProjectImp/Scenes/Debug_Scene";
+import Base_Scene from "./FinProjectImp/Scenes/Base_Scene";
 
 // The main function is your entrypoint into Wolfie2D. Specify your first scene and any options here.
 (function main(){
@@ -89,7 +89,7 @@ function runTests(){
 function HW2_CollisionTest(aabb: AABB, circle: Circle, value: boolean, message: string){
     console.assert(
         // TESTA - If we use this, I changed        vvv     from aabb to circle
-        Debug_Scene.checkCircletoCircleCollision(circle , circle) === value,
+        Base_Scene.checkCircletoCircleCollision(circle , circle) === value,
         {
             aabb: aabb.toString(),
             circle: circle.toString(),
