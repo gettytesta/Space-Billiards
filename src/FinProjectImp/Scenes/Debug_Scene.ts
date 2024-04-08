@@ -8,12 +8,13 @@ import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import AsteroidAI from "../AI/AsteroidAI";
-import { Homework2Event } from "../HW2_Enums";
-import SpaceshipPlayerController from "../AI/SpaceshipPlayerController";
+import { GameEvents } from "../HW2_Enums";
+import CuePlayerController from "../AI/CuePlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
 import GameOver from "./GameOver";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import Layer from "../../Wolfie2D/Scene/Layer";
+import ClearStage from "./ClearStage";
 
 
 /**
@@ -25,9 +26,7 @@ export default class Debug_Scene extends Scene {
 	
 	private player: AnimatedSprite;
 	private playerDead: boolean = false;
-	private playerShield: number = 5;
-	private playerinvincible: boolean = false;
-	private numAsteroidsDestroyed: number = 0;
+	private playerClearStage: boolean = false;
 
 	// TESTA - All asteroids will need to be declared globally. I think I can fix this later by putting this in the AsteroidAI class. Will do another time.
 	// Create an asteroid
@@ -81,10 +80,11 @@ export default class Debug_Scene extends Scene {
         this.uiComponents = this.addUILayer("fireButton");
 		const fire = this.add.uiElement(UIElementType.BUTTON, "fireButton", {position: new Vec2(center.x, center.y - 100), text: "Fire!"});
         fire.size.set(200, 50);
+		fire.position = new Vec2(1080,750)
         fire.borderWidth = 2;
         fire.borderColor = Color.WHITE;
         fire.backgroundColor = Color.TRANSPARENT;
-        fire.onClickEventId = Homework2Event.FIRE_BALL;
+        fire.onClickEventId = GameEvents.FIRE_BALL;
 		// Create a background layer
 		this.addLayer("background", 0);
 
@@ -131,7 +131,8 @@ export default class Debug_Scene extends Scene {
 		AsteroidAI.SPEED = this.ASTEROID_SPEED;
 
 		// Subscribe to events
-		this.receiver.subscribe(Homework2Event.PLAYER_DEAD);
+		this.receiver.subscribe(GameEvents.PLANET_HIT_BLACKHOLE);
+		this.receiver.subscribe(GameEvents.PLANET_COLLISION)
 	}
 
 	/*
@@ -175,7 +176,7 @@ export default class Debug_Scene extends Scene {
 		this.player.setCollisionShape(playerCollider)
 
 		// Add a playerController to the player
-		this.player.addAI(SpaceshipPlayerController, {owner: this.player, initialShield: this.playerShield});
+		this.player.addAI(CuePlayerController, {owner: this.player});
 	}
 
 	/**
@@ -213,8 +214,10 @@ export default class Debug_Scene extends Scene {
 		while(this.receiver.hasNextEvent()){
 			let event = this.receiver.getNextEvent();
 
-			if(event.type === Homework2Event.PLAYER_DEAD){
+			if(event.type === GameEvents.PLANET_COLLISION){
 				this.playerDead = true;
+			} else if (event.type === GameEvents.PLANET_HIT_BLACKHOLE){
+				this.playerClearStage = true;
 			}
 		}
 	}
@@ -223,19 +226,23 @@ export default class Debug_Scene extends Scene {
 	 * Updates all of our timers and handles timer related functions
 	 */
 	handleTimers(deltaT: number): void {
-
-		if(this.playerDead) this.gameEndTimer += deltaT;
-
-		if(this.gameEndTimer > this.GAME_END_MAX_TIME){
-			// End the game
-			this.sceneManager.changeScene(GameOver, {score: this.numAsteroidsDestroyed}, {});
+		if (this.playerDead) {
+			this.gameEndTimer += deltaT;
+			this.sceneManager.changeScene(GameOver, {});
+		} else if (this.playerClearStage) {
+			this.gameEndTimer += deltaT;
+			this.sceneManager.changeScene(ClearStage, {});
 		}
 	}
 
 	handleCollisions(){
-		// TESTA - Here will need a lot of work. We're going to need to make the physics work. Not easy.
+		// Check for collision with black hole
 		if (Debug_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>this.black_hole.collisionShape)) {
-			this.emitter.fireEvent(Homework2Event.PLAYER_DAMAGE, {id: this.player.id})
+			this.emitter.fireEvent(GameEvents.PLANET_HIT_BLACKHOLE, {id: this.player.id})
+		}
+		// Check for collision with asteroid(s)
+		if (Debug_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>this.asteroid.collisionShape)) {
+			this.emitter.fireEvent(GameEvents.PLANET_COLLISION, {id: this.player.id})
 		}
 	}
 
