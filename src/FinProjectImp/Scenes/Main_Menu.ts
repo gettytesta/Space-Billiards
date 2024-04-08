@@ -6,11 +6,8 @@ import Color from "../../Wolfie2D/Utils/Color";
 import { GameEvents } from "../GameEnums";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 import Base_Scene from "./Base_Scene";
-<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
-import Level_Select from "./Level_Select";
-=======
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
->>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
+import Level_Select from "./Level_Select";
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
@@ -67,8 +64,6 @@ export default class MainMenu extends Scene {
         about.onClickEventId = GameEvents.ABOUT;
 
 
-<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
-=======
 		center.add(new Vec2(0, -150));
 		this.dragDiagram = this.add.sprite("drag_diagram", "primary");
 		this.dragDiagram.position.copy(this.viewport.getCenter());
@@ -76,7 +71,6 @@ export default class MainMenu extends Scene {
 		let dScale = 1.5;
 		this.dragDiagram.scale = new Vec2(dScale, dScale);
 		this.dragDiagram.visible = false;
->>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
 
         // Controls screen
         this.controls = this.addUILayer("controls");
@@ -85,17 +79,10 @@ export default class MainMenu extends Scene {
         const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
 
-<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
-        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 50), text: "Hold Left Click and Drag to Aim"});
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x+200, center.y - 50), text: "Hold Left Click and Drag to Aim"});
         ws.textColor = Color.WHITE;
-        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y), text: "Click the 'Fire!' button to fire"});
+        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x+200, center.y), text: "Click the 'Fire!' button to fire"});
         ad.textColor = Color.WHITE;
-=======
-        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y - 50), text: "Hold left-click and drag to aim"});
-		ws.textColor = Color.WHITE;
-        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y), text: "Release to shoot"});
-		ad.textColor = Color.WHITE;
->>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
 
         const back = this.add.uiElement(UIElementType.BUTTON, "controls", {position: new Vec2(center.x + 200, center.y + 250), text: "Back"});
         back.size.set(200, 50);
