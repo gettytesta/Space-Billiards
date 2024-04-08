@@ -154,11 +154,11 @@ export default class Base_Scene extends Scene {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
 		this.player = this.add.animatedSprite("player", "primary");
-		this.player.addPhysics()
+		this.player.addPhysics();
 		this.player.position = level.cue_pos;
 		this.player.animation.play("idle");
-		let playerCollider = new Circle(Vec2.ZERO, 32)
-		this.player.setCollisionShape(playerCollider)
+		let playerCollider = new Circle(Vec2.ZERO, 32);
+		this.player.setCollisionShape(playerCollider);
 		this.player.addAI(CuePlayerController, {owner: this.player});
 
 		for (let asteroid of level.asteroids) {
