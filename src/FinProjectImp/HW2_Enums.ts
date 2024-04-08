@@ -1,19 +1,17 @@
-export enum Homework2Event {
+export enum GameEvents {
 	PLAY_GAME = "PLAY_GAME",
 	CONTROLS = "CONTROLS",
 	ABOUT = "ABOUT",
 	MENU = "MENU",
 	FIRE_BALL = "FIRE_BALL",
 
-	PLAYER_DAMAGE = "PLAYER_DAMAGE",
-	PLAYER_I_FRAMES_END = "PLAYER_I_FRAMES_END",
-	PLAYER_DEAD = "PLAYER_DEAD",
-	SHIP_DAMAGE = "SHIP_DAMAGE",
-	SHIP_DEAD = "SHIP_DEAD"
+	PLANET_COLLISION = "PLANET_COLLISION",
+	PLANET_HIT_BLACKHOLE = "PLANET_HIT_BLACKHOLE",
+	PLANET_OOB = "PLANET_OOB",
 }
 
-export enum Homework2Animations {
-	SHIP_IDLE = "IDLE",
-	SHIP_BOOST = "BOOST",
-	SHIP_DIE = "DYING",
+export enum GameAnimations {
+	// TESTA - These will be changed later on
+	CUE_IDLE = "idle",
+	CUE_COLLISION = "explode",
 }
