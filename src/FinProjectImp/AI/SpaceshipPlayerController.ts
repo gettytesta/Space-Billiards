@@ -65,17 +65,9 @@ export default class SpaceshipPlayerController implements AI{
 	handleEvent(event: GameEvent): void {
 		// We need to handle animations when we get hurt
 		if(event.type === Homework2Event.PLAYER_DAMAGE){
-			if(event.data.get("shield") === 0){
-				// Play animation and queue event to end game
-				this.owner.animation.play("explode", false, Homework2Event.PLAYER_DEAD);
-				this.owner.animation.queue("dead", true);
-				this.isDead = true;
-			} else {
-				this.owner.animation.play("shield", false, Homework2Event.PLAYER_I_FRAMES_END);
-			}
+			this.owner.animation.play("explode", false, Homework2Event.PLAYER_DEAD);
+			this.isDead = true;
 		}
-		if(event.type == Homework2Event.FIRE_BALL)
-			console.log("BALL MEANT TO FIRE")
 	}
 
 	update(deltaT: number): void {
