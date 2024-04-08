@@ -9,7 +9,7 @@ import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
 import { Homework2Event } from "../HW2_Enums";
 
-export default class SpaceshipPlayerController implements AI {
+export default class SpaceshipPlayerController implements AI{
 	// We want to be able to control our owner, so keep track of them
 	private owner: AnimatedSprite;
 
@@ -31,6 +31,7 @@ export default class SpaceshipPlayerController implements AI {
 	private mouseDragging: boolean = false; 
 	private mouseStart: Vec2;
 	private mouseEnd: Vec2;
+	private assignedVelocity: Vec2 = new Vec2(0,0)
 
 	// HOMEWORK 2 - TODO
 	/**
@@ -56,6 +57,7 @@ export default class SpaceshipPlayerController implements AI {
 		this.emitter = new Emitter();
 
 		this.receiver.subscribe(Homework2Event.PLAYER_DAMAGE)
+		this.receiver.subscribe(Homework2Event.FIRE_BALL)
 	}
 
 	activate(options: Record<string, any>){};
@@ -72,9 +74,12 @@ export default class SpaceshipPlayerController implements AI {
 				this.owner.animation.play("shield", false, Homework2Event.PLAYER_I_FRAMES_END);
 			}
 		}
+		if(event.type == Homework2Event.FIRE_BALL)
+			console.log("BALL MEANT TO FIRE")
 	}
 
 	update(deltaT: number): void {
+		
 		if(this.isDead) return;
 		
 		while(this.receiver.hasNextEvent()){
@@ -99,10 +104,11 @@ export default class SpaceshipPlayerController implements AI {
 				this.mouseDragging= false	
 				this.mouseEnd = Input.getMousePosition()
 				console.log(this.mouseEnd)
+				this.assignedVelocity = this.mouseStart.add(this.mouseEnd.mult(new Vec2(-1, -1)))
+				
 			}
 		}
-			
-
+		this.owner.move(this.assignedVelocity.scaled(deltaT))
 		
 		let forwardAxis = (Input.isPressed('forward') ? 1 : 0) + (Input.isPressed('backward') ? -1 : 0);
 		let turnDirection = (Input.isPressed('turn_ccw') ? -1 : 0) + (Input.isPressed('turn_cw') ? 1 : 0);
@@ -119,7 +125,7 @@ export default class SpaceshipPlayerController implements AI {
 		this.owner.rotation = -(Math.atan2(this.direction.y, this.direction.x) - Math.PI/2);
 		
 		// Move the player
-		this.owner.position.add(this.direction.scaled(-this.speed * deltaT));
+		//this.owner.position.add(this.direction.scaled(-this.speed * deltaT));
 
 		Debug.log("player_pos", "Player Position: " + this.owner.position.toString());
 
