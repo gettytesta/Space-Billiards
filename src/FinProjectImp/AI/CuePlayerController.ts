@@ -5,8 +5,6 @@ import Emitter from "../../Wolfie2D/Events/Emitter";
 import GameEvent from "../../Wolfie2D/Events/GameEvent";
 import Receiver from "../../Wolfie2D/Events/Receiver";
 import Input from "../../Wolfie2D/Input/Input";
-import Game from "../../Wolfie2D/Loop/Game";
-import Graphic from "../../Wolfie2D/Nodes/Graphic";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
@@ -62,8 +60,6 @@ export default class CuePlayerController implements AI {
 		this.receiver.subscribe(GameEvents.PLANET_HIT_BLACKHOLE)
 		this.receiver.subscribe(GameEvents.PLANET_COLLISION)
 		this.receiver.subscribe(GameEvents.FIRE_BALL)
-		this.receiver.subscribe(GameEvents.RESET_TRAJECTORY)
-		this.receiver.subscribe(GameEvents.PLAY_GAME)
 	}
 
 	activate(options: Record<string, any>){};
