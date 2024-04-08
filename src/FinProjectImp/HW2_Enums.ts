@@ -5,13 +5,13 @@ export enum Homework2Event {
 	MENU = "MENU",
 	FIRE_BALL = "FIRE_BALL",
 
+	PLANET_COLLISION = "PLANET_COLLISION",
+
 	PLAYER_DAMAGE = "PLAYER_DAMAGE",
-	PLAYER_I_FRAMES_END = "PLAYER_I_FRAMES_END",
 	PLAYER_DEAD = "PLAYER_DEAD",
 }
 
 export enum Homework2Animations {
-	SHIP_IDLE = "IDLE",
-	SHIP_BOOST = "BOOST",
-	SHIP_DIE = "DYING",
+	SHIP_IDLE = "idle",
+	SHIP_DIE = "explode",
 }

@@ -33,6 +33,9 @@ export default class Debug_Scene extends Scene {
 	// Create an asteroid
 	private asteroid: Sprite
 
+	// TESTA - Black hole will also be declared globally.
+	private black_hole: Sprite
+
 	// Labels for the gui
 	// TESTA - Leaving these here for when we add our UI
 	private planetsLabel: Label;
@@ -110,28 +113,24 @@ export default class Debug_Scene extends Scene {
 		asteroid.scale = new Vec2(2, 2)
 		asteroid.position = new Vec2(400,300)
 		asteroid.addAI(AsteroidAI)
-		let collider = new Circle(Vec2.ZERO, 50);
-		asteroid.setCollisionShape(collider);
+		asteroid.setCollisionShape(new Circle(Vec2.ZERO, 50));
 
 		let dir = Vec2.UP.rotateCCW(Math.PI);
 		asteroid.setAIActive(true, {direction: dir});
 		AsteroidAI.SPEED += this.ASTEROID_SPEED_INC;
 
-		
-		let black_hole = this.add.sprite("black hole", "primary")
+		this.black_hole = this.add.sprite("black hole", "primary")
+		let black_hole = this.black_hole
+		black_hole.setCollisionShape(new Circle(Vec2.ZERO, 50))
 		black_hole.position = new Vec2(200, 300)
 		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
 		black_hole.scale = new Vec2(3, 3)
-
-
-
 
 
 		// Initialize variables
 		AsteroidAI.SPEED = this.ASTEROID_SPEED;
 
 		// Subscribe to events
-		this.receiver.subscribe(Homework2Event.PLAYER_I_FRAMES_END);
 		this.receiver.subscribe(Homework2Event.PLAYER_DEAD);
 	}
 
@@ -165,13 +164,13 @@ export default class Debug_Scene extends Scene {
 		// We give it the key specified in our load function and the name of the layer
 		this.player = this.add.animatedSprite("player", "primary");
 		this.player.addPhysics()
-		// Set the player's position to the middle of the screen, and scale it down
+		// Set the player's position to the middle of the screen
 		this.player.position.set(this.viewport.getCenter().x, this.viewport.getCenter().y);
 
 		// Play the idle animation by default
 		this.player.animation.play("idle");
 
-		// Give the player a smaller hitbox
+		// Give the player a hitbox
 		let playerCollider = new Circle(Vec2.ZERO, 32)
 		this.player.setCollisionShape(playerCollider)
 
@@ -214,10 +213,6 @@ export default class Debug_Scene extends Scene {
 		while(this.receiver.hasNextEvent()){
 			let event = this.receiver.getNextEvent();
 
-			if(event.type === Homework2Event.PLAYER_I_FRAMES_END){
-				this.playerinvincible = false;
-			}
-
 			if(event.type === Homework2Event.PLAYER_DEAD){
 				this.playerDead = true;
 			}
@@ -239,6 +234,9 @@ export default class Debug_Scene extends Scene {
 
 	handleCollisions(){
 		// TESTA - Here will need a lot of work. We're going to need to make the physics work. Not easy.
+		if (Debug_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>this.black_hole.collisionShape)) {
+			this.emitter.fireEvent(Homework2Event.PLAYER_DAMAGE, {id: this.player.id})
+		}
 	}
 
 	/**
@@ -285,7 +283,7 @@ export default class Debug_Scene extends Scene {
 	 * @param circle2 The Circle collision shape 2
 	 * @returns True if the two shapes overlap, false if they do not
 	 */
-	static checkAABBtoCircleCollision(circle1: Circle, circle2: Circle): boolean {
+	static checkCircletoCircleCollision(circle1: Circle, circle2: Circle): boolean {
 		var distX = circle1.center.x - circle2.center.x
 		var distY = circle1.center.y - circle2.center.y
 		var radDist = circle1.radius+circle2.radius
