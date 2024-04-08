@@ -6,7 +6,11 @@ import Color from "../../Wolfie2D/Utils/Color";
 import { GameEvents } from "../GameEnums";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 import Base_Scene from "./Base_Scene";
+<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
 import Level_Select from "./Level_Select";
+=======
+import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
+>>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
@@ -14,10 +18,25 @@ export default class MainMenu extends Scene {
     private controls: Layer;
     private about: Layer;
 
-    loadScene(){}
+	private logo: Sprite;
+	private dragDiagram: Sprite;
+
+    loadScene(){
+		this.load.image("logo", "hw2_assets/sprites/logo.png")
+		this.load.image("drag_diagram", "hw2_assets/sprites/drag_diagram.png")
+	}
 
     startScene(){
+		this.addLayer("primary", 5);
+
+		this.logo = this.add.sprite("logo", "primary");
+		this.logo.position.copy(this.viewport.getCenter());
+		this.logo.position.add(new Vec2(0, -200));
+		let lScale = .3;
+		this.logo.scale = new Vec2(lScale, lScale);
+
         const center = this.viewport.getCenter();
+		center.add(new Vec2(0, 150));
 
         // The main menu
         this.mainMenu = this.addUILayer("mainMenu");
@@ -30,7 +49,8 @@ export default class MainMenu extends Scene {
         play.backgroundColor = Color.TRANSPARENT;
         play.onClickEventId = GameEvents.LEVEL_SELECT;
 
-        // Add controls button
+
+		// Add controls button
         const controls = this.add.uiElement(UIElementType.BUTTON, "mainMenu", {position: new Vec2(center.x, center.y), text: "Controls"});
         controls.size.set(200, 50);
         controls.borderWidth = 2;
@@ -47,20 +67,37 @@ export default class MainMenu extends Scene {
         about.onClickEventId = GameEvents.ABOUT;
 
 
+<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
+=======
+		center.add(new Vec2(0, -150));
+		this.dragDiagram = this.add.sprite("drag_diagram", "primary");
+		this.dragDiagram.position.copy(this.viewport.getCenter());
+		this.dragDiagram.position.add(new Vec2(-200, 0));
+		let dScale = 1.5;
+		this.dragDiagram.scale = new Vec2(dScale, dScale);
+		this.dragDiagram.visible = false;
+>>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
 
         // Controls screen
         this.controls = this.addUILayer("controls");
         this.controls.setHidden(true);
 
-        const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 250), text: "Controls"});
+        const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
 
+<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
         const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 50), text: "Hold Left Click and Drag to Aim"});
         ws.textColor = Color.WHITE;
         const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y), text: "Click the 'Fire!' button to fire"});
         ad.textColor = Color.WHITE;
+=======
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y - 50), text: "Hold left-click and drag to aim"});
+		ws.textColor = Color.WHITE;
+        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y), text: "Release to shoot"});
+		ad.textColor = Color.WHITE;
+>>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
 
-        const back = this.add.uiElement(UIElementType.BUTTON, "controls", {position: new Vec2(center.x, center.y + 250), text: "Back"});
+        const back = this.add.uiElement(UIElementType.BUTTON, "controls", {position: new Vec2(center.x + 200, center.y + 250), text: "Back"});
         back.size.set(200, 50);
         back.borderWidth = 2;
         back.borderColor = Color.WHITE;
@@ -76,7 +113,7 @@ export default class MainMenu extends Scene {
         const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, "about", {position: new Vec2(center.x, center.y - 250), text: "About"});
         aboutHeader.textColor = Color.WHITE;
 
-        const text1 = "This game was by <YOUR NAME HERE>, Joe Weaver, and Richard McKenna";
+        const text1 = "This game was created by Getty Lee Testa, Gleb Koslov, and Aidan Foley";
         const text2 = "using the Wolfie2D game engine, a TypeScript game engine created by";
         const text3 = "Joe Weaver and Richard McKenna.";
 
@@ -117,17 +154,23 @@ export default class MainMenu extends Scene {
             if(event.type === GameEvents.CONTROLS){
                 this.controls.setHidden(false);
                 this.mainMenu.setHidden(true);
+				this.logo.visible = false;
+				this.dragDiagram.visible = true;
             }
 
             if(event.type === GameEvents.ABOUT){
                 this.about.setHidden(false);
                 this.mainMenu.setHidden(true);
+				this.logo.visible = false;
+				this.dragDiagram.visible = false;
             }
 
             if(event.type === GameEvents.MENU){
                 this.mainMenu.setHidden(false);
                 this.controls.setHidden(true);
                 this.about.setHidden(true);
+				this.logo.visible = true;
+				this.dragDiagram.visible = false;
             }
         }
     }

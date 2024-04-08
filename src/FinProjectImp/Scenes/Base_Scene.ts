@@ -17,7 +17,7 @@ import Layer from "../../Wolfie2D/Scene/Layer";
 import ClearStage from "./Clear_Stage";
 import Game from "../../Wolfie2D/Loop/Game";
 import Levels from "./Levels";
-import Level from "./LevelType";
+import Level, { Asteroid, WormholePair } from "./LevelType";
 
 
 // TESTA - This file should be used for any scene that we create. 
@@ -35,6 +35,7 @@ export default class Base_Scene extends Scene {
 	private player: AnimatedSprite;
 	private playerDead: boolean = false;
 	private playerClearStage: boolean = false;
+	private playerJustTouchedWormhole: boolean = false;
 
 	// TESTA - I'm not exactly sure if this should be stored here. It will represent what level we're on.
 	private levelNumber = 1;
@@ -43,6 +44,9 @@ export default class Base_Scene extends Scene {
 	private asteroids: Array<Sprite> = new Array();
 
 	private planets: Array<AnimatedSprite> = new Array(2);
+
+	private wormholes: Array<Sprite> = new Array();
+	private wormholePairs: Array<WormholePair> = new Array();
 
 	private black_hole: Sprite
 
@@ -73,6 +77,10 @@ export default class Base_Scene extends Scene {
 
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
+		this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
+		this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
+		this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
+		this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
 		this.load.image("black hole", "hw2_assets/sprites/Black Hole TEMP.png")
 
 		// Load in the background image
@@ -118,6 +126,7 @@ export default class Base_Scene extends Scene {
 		this.initializeObjectPools();
 
 		// Subscribe to events
+		this.receiver.subscribe(GameEvents.PLANET_HIT_WORMHOLE)
 		this.receiver.subscribe(GameEvents.PLANET_HIT_BLACKHOLE)
 		this.receiver.subscribe(GameEvents.PLANET_COLLISION)
 		this.receiver.subscribe(GameEvents.PLANET_OOB)
@@ -148,11 +157,11 @@ export default class Base_Scene extends Scene {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
 		this.player = this.add.animatedSprite("player", "primary");
-		this.player.addPhysics()
+		this.player.addPhysics();
 		this.player.position = level.cue_pos;
 		this.player.animation.play("idle");
-		let playerCollider = new Circle(Vec2.ZERO, 32)
-		this.player.setCollisionShape(playerCollider)
+		let playerCollider = new Circle(Vec2.ZERO, 32);
+		this.player.setCollisionShape(playerCollider);
 		this.player.addAI(CuePlayerController, {owner: this.player});
 
 		for (let asteroid of level.asteroids) {
@@ -162,6 +171,24 @@ export default class Base_Scene extends Scene {
 			currAsteroid.addAI(AsteroidAI)
 			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 50));
 			this.asteroids.push(currAsteroid)
+		}
+
+		let colorIndex = 0
+		let colors = ["white", "red", "blue", "green"]
+		for (let wormholePair of level.wormholePairs) {
+			let color = colors[colorIndex % (colors.length+1)]
+			colorIndex++
+			for (let i of [0, 1]) {
+				let currWormhole = this.add.sprite("wormhole_" + color, "primary")
+				let wScale = .3
+				currWormhole.scale = new Vec2(wScale, wScale);
+				currWormhole.position = wormholePair.positions[i]
+				currWormhole.setCollisionShape(new Circle(Vec2.ZERO, 50));
+				// TODO(cheryl): is this a reference or a copy?
+				wormholePair.spriteIDs[i] = currWormhole.id
+				this.wormholes.push(currWormhole)
+			}
+			this.wormholePairs.push(wormholePair)
 		}
 
 		this.black_hole = this.add.sprite("black hole", "primary")
@@ -210,6 +237,23 @@ export default class Base_Scene extends Scene {
 
 			if(event.type === GameEvents.PLANET_COLLISION){
 				this.playerDead = true;
+			} else if (event.type === GameEvents.PLANET_HIT_WORMHOLE) {
+				let level : Level = Levels.getLevel(this.viewport, this.levelNumber);
+				console.log(level)
+				let id = event.data.get("wormholeID")
+
+				console.log("Checking wormhole id " + id)
+				for (let wormholePair of this.wormholePairs) {
+					console.log("CHECKING PAIR with ids " + wormholePair.spriteIDs[0] + " and " + wormholePair.spriteIDs[1])
+					if (wormholePair.spriteIDs.includes(id)) {
+						console.log("FOUND PAIR")
+						if (wormholePair.spriteIDs[0] === id)
+							this.player.position.copy(wormholePair.positions[1])
+						else
+							this.player.position.copy(wormholePair.positions[0])
+					}
+				}
+				console.log("HIT WORMHOLE")
 			} else if (event.type === GameEvents.PLANET_HIT_BLACKHOLE){
 				this.playerClearStage = true;
 			} else if (event.type === GameEvents.PLANET_OOB){
@@ -242,6 +286,18 @@ export default class Base_Scene extends Scene {
 				this.emitter.fireEvent(GameEvents.PLANET_COLLISION, {id: this.player.id})
 			}
 		}
+
+		let touchedWormhole = false
+		for (let wormhole of this.wormholes) {
+			if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>wormhole.collisionShape)) {
+				if(!this.playerJustTouchedWormhole)
+					this.emitter.fireEvent(GameEvents.PLANET_HIT_WORMHOLE, {playerID: this.player.id, wormholeID: wormhole.id})
+				touchedWormhole = true
+				this.playerJustTouchedWormhole = true
+			}
+		}
+		if (!touchedWormhole)
+			this.playerJustTouchedWormhole = false
 
 		const viewportCenter = this.viewport.getCenter().clone();
 		const paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.WORLD_PADDING.scaled(2));
