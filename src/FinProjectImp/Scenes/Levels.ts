@@ -28,7 +28,7 @@ export default class Levels {
 	static getLevel2(viewport:Viewport) : Level {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var asteroids : Array<Asteroid> = [new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y-200), 10),
-											new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y-2100), 10)]
+											new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y+200), 10)]
 		var cp = new Vec2(viewport.getCenter().x+400, viewport.getCenter().y)
 		return new Level(bhp,asteroids,cp);
 	}

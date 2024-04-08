@@ -7,7 +7,7 @@ import Receiver from "../../Wolfie2D/Events/Receiver";
 import Input from "../../Wolfie2D/Input/Input";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
-import { GameEvents } from "../HW2_Enums";
+import { GameEvents } from "../GameEnums";
 
 export default class CuePlayerController implements AI{
 	// We want to be able to control our owner, so keep track of them
