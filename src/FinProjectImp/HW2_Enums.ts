@@ -7,6 +7,7 @@ export enum GameEvents {
 
 	PLANET_COLLISION = "PLANET_COLLISION",
 	PLANET_HIT_BLACKHOLE = "PLANET_HIT_BLACKHOLE",
+	PLANET_OOB = "PLANET_OOB",
 }
 
 export enum GameAnimations {

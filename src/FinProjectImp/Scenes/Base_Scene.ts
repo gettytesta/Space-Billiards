@@ -16,28 +16,37 @@ import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import Layer from "../../Wolfie2D/Scene/Layer";
 import ClearStage from "./ClearStage";
 import Game from "../../Wolfie2D/Loop/Game";
+import Levels from "./Levels";
+import Level from "./LevelType";
+
+
+// TESTA - This file should be used for any scene that we create. 
+// We'll then make a new TS file just containing the placements of the items, which base_scene will load in.
+// This is to avoid having to port over all the crap
+// Essentially just making level files
 
 
 /**
  * In Wolfie2D, custom scenes extend the original scene class.
  * This gives us access to lifecycle methods to control our game.
  */
-export default class Debug_Scene extends Scene {
+export default class Base_Scene extends Scene {
 	// Here we define member variables of our game, and object pools for adding in game objects
-	
 	private player: AnimatedSprite;
 	private playerDead: boolean = false;
 	private playerClearStage: boolean = false;
 
-	// TESTA - All asteroids will need to be declared globally. I think I can fix this later by putting this in the AsteroidAI class. Will do another time.
-	// Create an asteroid
-	private asteroid: Sprite
+	// TESTA - I'm not exactly sure if this should be stored here. It will represent what level we're on.
+	private levelNumber = 1;
 
-	// TESTA - Black hole will also be declared globally.
+	// TESTA - This will be our array for all asteroids in the scene.
+	private asteroids: Array<Sprite> = new Array();
+
+	private planets: Array<AnimatedSprite> = new Array(2);
+
 	private black_hole: Sprite
 
 	// Labels for the gui
-	// TESTA - Leaving these here for when we add our UI
 	private planetsLabel: Label;
 
 	// Timers
@@ -46,10 +55,8 @@ export default class Debug_Scene extends Scene {
 
 	// Other variables
 	private WORLD_PADDING: Vec2 = new Vec2(64, 64);
-	private ASTEROID_SPEED: number = 100;
-	private ASTEROID_SPEED_INC: number = 10;
 
-	//Gleb - These are some UI components that will be useful for handling fire and eventually switching between balls
+	// Gleb - These are some UI components that will be useful for handling fire and eventually switching between balls
 	private uiComponents: Layer;
 
 	// HOMEWORK 2 - TODO
@@ -58,7 +65,7 @@ export default class Debug_Scene extends Scene {
 	 * use in our scene.
 	 */
 	loadScene(){
-		// Load in the player spaceship spritesheet
+		// Load in the planet spritesheet
 		this.load.spritesheet("player", "hw2_assets/spritesheets/player_planet.json");
 
 		// Load in the sprites
@@ -98,38 +105,14 @@ export default class Debug_Scene extends Scene {
 		// It is given a depth of 5 to be above our background
 		this.addLayer("primary", 5);
 
-		// Initialize the player
-		this.initializePlayer();
+		// Initialize the cues, asteroids, and black hole
+		this.initializeObjects(this.levelNumber);
 		
 		// Initialize the UI
 		this.initializeUI();
 
 		// Initialize object pools
 		this.initializeObjectPools();
-
-
-		// TESTA - Here is where we load in the elements. This might be its own function in the final version
-		this.asteroid = this.add.sprite("asteroid", "primary")
-		let asteroid = this.asteroid
-		asteroid.scale = new Vec2(2, 2)
-		asteroid.position = new Vec2(400,300)
-		asteroid.addAI(AsteroidAI)
-		asteroid.setCollisionShape(new Circle(Vec2.ZERO, 50));
-
-		let dir = Vec2.UP.rotateCCW(Math.PI);
-		asteroid.setAIActive(true, {direction: dir});
-		AsteroidAI.SPEED += this.ASTEROID_SPEED_INC;
-
-		this.black_hole = this.add.sprite("black hole", "primary")
-		let black_hole = this.black_hole
-		black_hole.setCollisionShape(new Circle(Vec2.ZERO, 50))
-		black_hole.position = new Vec2(200, 300)
-		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
-		black_hole.scale = new Vec2(3, 3)
-
-
-		// Initialize variables
-		AsteroidAI.SPEED = this.ASTEROID_SPEED;
 
 		// Subscribe to events
 		this.receiver.subscribe(GameEvents.PLANET_HIT_BLACKHOLE)
@@ -152,33 +135,37 @@ export default class Debug_Scene extends Scene {
 		// Get the viewport center and padded size
 		const viewportCenter = this.viewport.getCenter().clone();
 		const paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.WORLD_PADDING.scaled(2));
-
-		// Handle screen wrapping
-		this.handleScreenWrap(this.player, viewportCenter, paddedViewportSize);
-		this.handleScreenWrap(this.asteroid, viewportCenter, paddedViewportSize);
 	}
 
 	/* ########## START SCENE METHODS ########## */
 	/**
 	 * Creates and sets up our player object
 	 */
-	initializePlayer(): void {
-		// Add in the player as an animated sprite
-		// We give it the key specified in our load function and the name of the layer
+	initializeObjects(levelNumber: number): void {
+		var level : Level = Levels.getLevel1(this.viewport);
+
 		this.player = this.add.animatedSprite("player", "primary");
 		this.player.addPhysics()
-		// Set the player's position to the middle of the screen
-		this.player.position.set(this.viewport.getCenter().x, this.viewport.getCenter().y);
-
-		// Play the idle animation by default
+		this.player.position = level.cue_pos;
 		this.player.animation.play("idle");
-
-		// Give the player a hitbox
 		let playerCollider = new Circle(Vec2.ZERO, 32)
 		this.player.setCollisionShape(playerCollider)
-
-		// Add a playerController to the player
 		this.player.addAI(CuePlayerController, {owner: this.player});
+
+		for (let asteroid of level.asteroids) {
+			let currAsteroid = this.add.sprite("asteroid", "primary")
+			currAsteroid.scale = new Vec2(2, 2)
+			currAsteroid.position = asteroid.position
+			currAsteroid.addAI(AsteroidAI)
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 50));
+			this.asteroids.push(currAsteroid)
+		}
+
+		this.black_hole = this.add.sprite("black hole", "primary")
+		this.black_hole.setCollisionShape(new Circle(Vec2.ZERO, 50))
+		this.black_hole.position = level.black_hole_pos
+		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
+		this.black_hole.scale = new Vec2(3, 3)
 	}
 
 	/**
@@ -188,7 +175,9 @@ export default class Debug_Scene extends Scene {
 		// UILayer stuff
 		this.addUILayer("ui");
 
-		// Shields label
+		// TESTA - This definitely won't be needed in the final version
+		// The planets shoot at the same time, so this isn't needed
+		// Planets label
 		this.planetsLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(125, 40), text: `Planets Left: 1`});
 		this.planetsLabel.size.set(200, 50);
 		this.planetsLabel.setHAlign("left");
@@ -241,12 +230,14 @@ export default class Debug_Scene extends Scene {
 
 	handleCollisions(){
 		// Check for collision with black hole
-		if (Debug_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>this.black_hole.collisionShape)) {
+		if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>this.black_hole.collisionShape)) {
 			this.emitter.fireEvent(GameEvents.PLANET_HIT_BLACKHOLE, {id: this.player.id})
 		}
 		// Check for collision with asteroid(s)
-		if (Debug_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>this.asteroid.collisionShape)) {
-			this.emitter.fireEvent(GameEvents.PLANET_COLLISION, {id: this.player.id})
+		for (let asteroid of this.asteroids) {
+			if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>asteroid.collisionShape)) {
+				this.emitter.fireEvent(GameEvents.PLANET_COLLISION, {id: this.player.id})
+			}
 		}
 
 		const viewportCenter = this.viewport.getCenter().clone();
