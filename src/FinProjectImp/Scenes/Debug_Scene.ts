@@ -76,12 +76,14 @@ export default class Debug_Scene extends Scene {
 
         // The main menu
         this.uiComponents = this.addUILayer("fireButton");
-		const fire = this.add.uiElement(UIElementType.BUTTON, "fireButton", {position: new Vec2(center.x, center.y - 100), text: "Fire!"});
+		const fire = this.add.uiElement(UIElementType.BUTTON, "fireButton", {position: new Vec2(center.x + 450, center.y + 300), text: "Fire!"});
         fire.size.set(200, 50);
         fire.borderWidth = 2;
         fire.borderColor = Color.WHITE;
         fire.backgroundColor = Color.TRANSPARENT;
         fire.onClickEventId = Homework2Event.FIRE_BALL;
+
+
 		/* ##### DO NOT MODIFY ##### */
 		// Create a background layer
 		this.addLayer("background", 0);
