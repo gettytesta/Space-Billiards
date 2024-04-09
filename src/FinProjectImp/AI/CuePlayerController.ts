@@ -15,7 +15,7 @@ import { GameEvents } from "../GameEnums";
 
 export default class CuePlayerController implements AI{
 	// We want to be able to control our owner, so keep track of them
-	private owner: Graphic;
+	private owner: Sprite;
 
 	private directionArrow: Sprite; 
 
@@ -54,7 +54,7 @@ export default class CuePlayerController implements AI{
 	 * @param owner The owner of this AI - i.e. the player
 	 * @param options The list of options for ai initialization
 	 */
-	initializeAI(owner: Graphic, options: Record<string, any>): void {
+	initializeAI(owner: Sprite, options: Record<string, any>): void {
 		this.owner = owner;
 
 		//Set up of directional arrow to show where its aiming
