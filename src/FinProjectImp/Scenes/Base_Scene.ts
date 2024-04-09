@@ -188,7 +188,7 @@ export default class Base_Scene extends Scene {
 			currAsteroid.scale = new Vec2(2, 2)
 			currAsteroid.position = asteroid.position
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 30));
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 20));
 			this.asteroids.push(currAsteroid)
 		}
 
