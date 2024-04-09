@@ -3,6 +3,7 @@ export enum GameEvents {
 	CONTROLS = "CONTROLS",
 	ABOUT = "ABOUT",
 	MENU = "MENU",
+	
 
 	LEVEL1 = "LEVEL1",
 	LEVEL2 = "LEVEL2",

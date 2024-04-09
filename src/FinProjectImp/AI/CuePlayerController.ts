@@ -87,13 +87,11 @@ export default class CuePlayerController implements AI{
 			console.log("Mouse is Clicked")
 			if(!this.mouseDragging)
 			{
-				this.mouseDragging=true
+				this.mouseDragging = true
 				this.mouseStart = Input.getMousePressPosition()
 				console.log(this.mouseStart)
 			}	
-		}
-		else
-		{
+		} else {
 			if(this.mouseDragging)
 			{
 				this.mouseDragging= false	
@@ -103,24 +101,9 @@ export default class CuePlayerController implements AI{
 				
 			}
 		}
+
+		// Move the planet
 		this.owner.move(this.assignedVelocity.scaled(deltaT))
-		
-		let forwardAxis = (Input.isPressed('forward') ? 1 : 0) + (Input.isPressed('backward') ? -1 : 0);
-		let turnDirection = (Input.isPressed('turn_ccw') ? -1 : 0) + (Input.isPressed('turn_cw') ? 1 : 0);
-
-		// Space controls - speed stays the same if nothing happens
-		// Forward to speed up, backward to slow down
-		this.speed += this.ACCELERATION * forwardAxis;
-		this.speed = MathUtils.clamp(this.speed, this.MIN_SPEED, this.MAX_SPEED);
-
-		// Rotate the player
-		this.direction.rotateCCW(turnDirection * this.rotationSpeed * deltaT);
-
-		// Update the visual direction of the player
-		this.owner.rotation = -(Math.atan2(this.direction.y, this.direction.x) - Math.PI/2);
-		
-		// Move the player
-		//this.owner.position.add(this.direction.scaled(-this.speed * deltaT));
 
 		Debug.log("player_pos", "Player Position: " + this.owner.position.toString());
 
