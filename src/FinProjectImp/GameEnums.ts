@@ -4,6 +4,7 @@ export enum GameEvents {
 	ABOUT = "ABOUT",
 	MENU = "MENU",
 	TRAJECTORY_SET = "TRAJECTORY_SET",
+	PLAY_GAME = "PLAY_GAME",
 
 	LEVEL1 = "LEVEL1",
 	LEVEL2 = "LEVEL2",

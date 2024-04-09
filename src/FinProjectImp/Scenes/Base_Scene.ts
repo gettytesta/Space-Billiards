@@ -34,7 +34,7 @@ import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
  */
 export default class Base_Scene extends Scene {
 	// Here we define member variables of our game, and object pools for adding in game objects
-	private player: AnimatedSprite;
+	private player: Sprite;
 	private playerDead: boolean = false;
 	private playerClearStage: boolean = false;
 	private playerJustTouchedWormhole: boolean = false;
@@ -75,7 +75,7 @@ export default class Base_Scene extends Scene {
 	 */
 	loadScene(){
 		// Load in the planet spritesheet
-		this.load.spritesheet("player", "hw2_assets/spritesheets/player_planet.json");
+		this.load.image("player", "hw2_assets/spritesheets/player_planet.png");
 
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
@@ -184,11 +184,11 @@ export default class Base_Scene extends Scene {
 	initializeObjects(levelNumber: number): void {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
-		this.player = this.add.animatedSprite("player", "primary");
+		this.player = this.add.sprite("player", "primary");
 		let arrow = this.add.sprite("arrow", "primary")
 		this.player.addPhysics()
 		this.player.position = level.cue_pos;
-		this.player.animation.play("idle");
+		//this.player.animation.play("idle");
 		let playerCollider = new Circle(Vec2.ZERO, 32)
 		this.player.setCollisionShape(playerCollider)
 

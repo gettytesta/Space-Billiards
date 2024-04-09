@@ -15,9 +15,9 @@ import { GameEvents } from "../GameEnums";
 
 export default class CuePlayerController implements AI{
 	// We want to be able to control our owner, so keep track of them
-	private owner: AnimatedSprite;
+	private owner: Graphic;
 
-	private directionArrow: Graphic; 
+	private directionArrow: Sprite; 
 
 	// The direction the spaceship is moving
 	private direction: Vec2;
@@ -39,7 +39,7 @@ export default class CuePlayerController implements AI{
 	private mouseDragging: boolean = false; 
 	private mouseStart: Vec2 =  new Vec2(0,0);
 	private mouseEnd: Vec2 =  new Vec2(0,0);
-	private assignedVelocity: Vec2 = new Vec2(0,0)
+	public assignedVelocity: Vec2 = new Vec2(0,0)
 	private trajectorySet: boolean = false; 
 
 	// HOMEWORK 2 - TODO
@@ -54,7 +54,7 @@ export default class CuePlayerController implements AI{
 	 * @param owner The owner of this AI - i.e. the player
 	 * @param options The list of options for ai initialization
 	 */
-	initializeAI(owner: AnimatedSprite, options: Record<string, any>): void {
+	initializeAI(owner: Graphic, options: Record<string, any>): void {
 		this.owner = owner;
 
 		//Set up of directional arrow to show where its aiming
@@ -82,7 +82,7 @@ export default class CuePlayerController implements AI{
 	handleEvent(event: GameEvent): void {
 		// We need to handle animations when we get hurt
 		if(event.type === GameEvents.PLANET_HIT_BLACKHOLE){
-			this.owner.animation.play("explode", true);
+			//this.owner.animation.play("explode", true);
 			this.hitBlackHole = true;
 		}
 		if(event.type === GameEvents.FIRE_BALL)
@@ -220,8 +220,8 @@ export default class CuePlayerController implements AI{
 		Debug.log("player_pos", "Player Position: " + this.owner.position.toString());
 
 		// Animations
-		if(!this.owner.animation.isPlaying("explode")){
+		/*if(!this.owner.animation.isPlaying("explode")){
 			this.owner.animation.playIfNotAlready("idle");
-		}
+		}*/
 	}
 } 
