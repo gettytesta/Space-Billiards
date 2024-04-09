@@ -6,8 +6,13 @@ import Color from "../../Wolfie2D/Utils/Color";
 import { GameEvents } from "../GameEnums";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 import Base_Scene from "./Base_Scene";
+<<<<<<< HEAD
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import Level_Select from "./Level_Select";
+=======
+import Level_Select from "./Level_Select";
+import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
+>>>>>>> bff12134bbcfdc2b259356bd3bd63bd19d3596dd
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
@@ -79,12 +84,20 @@ export default class MainMenu extends Scene {
         const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
 
+<<<<<<< HEAD
         const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x+200, center.y - 50), text: "Hold Left Click and Drag to Aim"});
+=======
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 50), text: "Hold Left Click and Drag to Aim"});
+>>>>>>> bff12134bbcfdc2b259356bd3bd63bd19d3596dd
         ws.textColor = Color.WHITE;
         const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x+200, center.y), text: "Click the 'Fire!' button to fire"});
         ad.textColor = Color.WHITE;
+<<<<<<< HEAD
 
+=======
+>>>>>>> bff12134bbcfdc2b259356bd3bd63bd19d3596dd
         const back = this.add.uiElement(UIElementType.BUTTON, "controls", {position: new Vec2(center.x + 200, center.y + 250), text: "Back"});
+
         back.size.set(200, 50);
         back.borderWidth = 2;
         back.borderColor = Color.WHITE;
