@@ -33,7 +33,7 @@ export default class CuePlayerController implements AI{
 	private mouseDragging: boolean = false; 
 	private mouseStart: Vec2;
 	private mouseEnd: Vec2;
-	private assignedVelocity: Vec2 = new Vec2(0,0)
+	public assignedVelocity: Vec2 = new Vec2(0,0)
 
 	// HOMEWORK 2 - TODO
 	/**
