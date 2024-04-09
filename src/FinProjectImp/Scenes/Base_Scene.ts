@@ -8,13 +8,13 @@ import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import AsteroidAI from "../AI/AsteroidAI";
-import { GameEvents } from "../HW2_Enums";
+import { GameEvents } from "../GameEnums";
 import CuePlayerController from "../AI/CuePlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
-import GameOver from "./GameOver";
+import GameOver from "./Game_Over";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import Layer from "../../Wolfie2D/Scene/Layer";
-import ClearStage from "./ClearStage";
+import ClearStage from "./Clear_Stage";
 import Game from "../../Wolfie2D/Loop/Game";
 import Levels from "./Levels";
 import Level, { Asteroid, WormholePair } from "./LevelType";
@@ -63,7 +63,10 @@ export default class Base_Scene extends Scene {
 	// Gleb - These are some UI components that will be useful for handling fire and eventually switching between balls
 	private uiComponents: Layer;
 
-	// HOMEWORK 2 - TODO
+	initScene(init: Record<string, any>): void {
+		this.levelNumber = init.levelNum
+	}
+
 	/*
 	 * loadScene() overrides the parent class method. It allows us to load in custom assets for
 	 * use in our scene.

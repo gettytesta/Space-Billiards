@@ -3,10 +3,14 @@ import { UIElementType } from "../../Wolfie2D/Nodes/UIElements/UIElementTypes";
 import Layer from "../../Wolfie2D/Scene/Layer";
 import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
-import { GameEvents } from "../HW2_Enums";
+import { GameEvents } from "../GameEnums";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 import Base_Scene from "./Base_Scene";
+<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
+import Level_Select from "./Level_Select";
+=======
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
+>>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
@@ -38,12 +42,12 @@ export default class MainMenu extends Scene {
         this.mainMenu = this.addUILayer("mainMenu");
 
         // Add play button, and give it an event to emit on press
-        const play = this.add.uiElement(UIElementType.BUTTON, "mainMenu", {position: new Vec2(center.x, center.y - 100), text: "Play"});
+        const play = this.add.uiElement(UIElementType.BUTTON, "mainMenu", {position: new Vec2(center.x, center.y - 100), text: "Level Select"});
         play.size.set(200, 50);
         play.borderWidth = 2;
         play.borderColor = Color.WHITE;
         play.backgroundColor = Color.TRANSPARENT;
-        play.onClickEventId = GameEvents.PLAY_GAME;
+        play.onClickEventId = GameEvents.LEVEL_SELECT;
 
 
 		// Add controls button
@@ -63,6 +67,8 @@ export default class MainMenu extends Scene {
         about.onClickEventId = GameEvents.ABOUT;
 
 
+<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
+=======
 		center.add(new Vec2(0, -150));
 		this.dragDiagram = this.add.sprite("drag_diagram", "primary");
 		this.dragDiagram.position.copy(this.viewport.getCenter());
@@ -70,6 +76,7 @@ export default class MainMenu extends Scene {
 		let dScale = 1.5;
 		this.dragDiagram.scale = new Vec2(dScale, dScale);
 		this.dragDiagram.visible = false;
+>>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
 
         // Controls screen
         this.controls = this.addUILayer("controls");
@@ -78,10 +85,17 @@ export default class MainMenu extends Scene {
         const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
 
+<<<<<<< HEAD:src/FinProjectImp/Scenes/Main_Menu.ts
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 50), text: "Hold Left Click and Drag to Aim"});
+        ws.textColor = Color.WHITE;
+        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y), text: "Click the 'Fire!' button to fire"});
+        ad.textColor = Color.WHITE;
+=======
         const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y - 50), text: "Hold left-click and drag to aim"});
 		ws.textColor = Color.WHITE;
         const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y), text: "Release to shoot"});
 		ad.textColor = Color.WHITE;
+>>>>>>> 04dc4d0a1906ff7f2bdbb5863f2bf544007681c9:src/FinProjectImp/Scenes/MainMenu.ts
 
         const back = this.add.uiElement(UIElementType.BUTTON, "controls", {position: new Vec2(center.x + 200, center.y + 250), text: "Back"});
         back.size.set(200, 50);
@@ -89,6 +103,8 @@ export default class MainMenu extends Scene {
         back.borderColor = Color.WHITE;
         back.backgroundColor = Color.TRANSPARENT;
         back.onClickEventId = GameEvents.MENU;
+
+
 
         // About screen
         this.about = this.addUILayer("about");
@@ -116,8 +132,10 @@ export default class MainMenu extends Scene {
         aboutBack.backgroundColor = Color.TRANSPARENT;
         aboutBack.onClickEventId = GameEvents.MENU;
 
+
+
         // Subscribe to the button events
-        this.receiver.subscribe(GameEvents.PLAY_GAME);
+        this.receiver.subscribe(GameEvents.LEVEL_SELECT);
         this.receiver.subscribe(GameEvents.CONTROLS);
         this.receiver.subscribe(GameEvents.ABOUT);
         this.receiver.subscribe(GameEvents.MENU)
@@ -129,8 +147,8 @@ export default class MainMenu extends Scene {
 
             console.log(event);
 
-            if(event.type === GameEvents.PLAY_GAME){
-                this.sceneManager.changeScene(Base_Scene, {});
+            if(event.type === GameEvents.LEVEL_SELECT){
+                this.sceneManager.changeScene(Level_Select, {});
             }
 
             if(event.type === GameEvents.CONTROLS){
