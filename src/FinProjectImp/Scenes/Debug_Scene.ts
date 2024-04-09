@@ -8,12 +8,13 @@ import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import AsteroidAI from "../AI/AsteroidAI";
-import { Homework2Event } from "../HW2_Enums";
-import SpaceshipPlayerController from "../AI/SpaceshipPlayerController";
+import { GameEvents } from "../HW2_Enums";
+import SpaceshipPlayerController from "../AI/CuePlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
 import GameOver from "./GameOver";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import Layer from "../../Wolfie2D/Scene/Layer";
+import Game from "../../Wolfie2D/Loop/Game";
 
 
 /**
@@ -81,7 +82,7 @@ export default class Debug_Scene extends Scene {
         fire.borderWidth = 2;
         fire.borderColor = Color.WHITE;
         fire.backgroundColor = Color.TRANSPARENT;
-        fire.onClickEventId = Homework2Event.FIRE_BALL;
+        fire.onClickEventId = GameEvents.FIRE_BALL;
 
 
 		/* ##### DO NOT MODIFY ##### */
@@ -134,8 +135,8 @@ export default class Debug_Scene extends Scene {
 		AsteroidAI.SPEED = this.ASTEROID_SPEED;
 
 		// Subscribe to events
-		this.receiver.subscribe(Homework2Event.PLAYER_I_FRAMES_END);
-		this.receiver.subscribe(Homework2Event.PLAYER_DEAD);
+		//this.receiver.subscribe(GameEvents.PLAYER_I_FRAMES_END);
+		//this.receiver.subscribe(Homework2Event.PLAYER_DEAD);
 	}
 
 	/*
@@ -143,7 +144,6 @@ export default class Debug_Scene extends Scene {
 	 */
 	updateScene(deltaT: number){
 		// Handle events we care about
-		this.handleEvents();
 
 		this.handleCollisions();
 
@@ -214,19 +214,6 @@ export default class Debug_Scene extends Scene {
 	 * Handles all events we care about in the update cycle.
 	 * Gets all events from the receiver this frame, and reacts to them accordingly
 	 */
-	handleEvents(){
-		while(this.receiver.hasNextEvent()){
-			let event = this.receiver.getNextEvent();
-
-			if(event.type === Homework2Event.PLAYER_I_FRAMES_END){
-				this.playerinvincible = false;
-			}
-
-			if(event.type === Homework2Event.PLAYER_DEAD){
-				this.playerDead = true;
-			}
-		}
-	}
 
 	/**
 	 * Updates all of our timers and handles timer related functions

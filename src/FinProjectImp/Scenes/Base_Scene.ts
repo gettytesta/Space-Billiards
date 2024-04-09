@@ -71,7 +71,7 @@ export default class Base_Scene extends Scene {
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
 		this.load.image("black hole", "hw2_assets/sprites/Black Hole TEMP.png")
-
+		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 		// Load in the background image
 		this.load.image("space", "hw2_assets/sprites/space.png");
 	}
@@ -93,6 +93,15 @@ export default class Base_Scene extends Scene {
         fire.borderColor = Color.WHITE;
         fire.backgroundColor = Color.TRANSPARENT;
         fire.onClickEventId = GameEvents.FIRE_BALL;
+
+		this.uiComponents = this.addUILayer("resetButton");
+		const reset = this.add.uiElement(UIElementType.BUTTON, "resetButton", {position: new Vec2(center.x, center.y - 100), text: "Reset Trajectory"});
+        reset.size.set(200, 50);
+		reset.position = new Vec2(1080,650)
+        reset.borderWidth = 2;
+        reset.borderColor = Color.WHITE;
+        reset.backgroundColor = Color.TRANSPARENT;
+        reset.onClickEventId = GameEvents.RESET_TRAJECTORY;
 		// Create a background layer
 		this.addLayer("background", 0);
 
@@ -145,12 +154,15 @@ export default class Base_Scene extends Scene {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
 		this.player = this.add.animatedSprite("player", "primary");
+		let arrow = this.add.sprite("arrow", "primary")
 		this.player.addPhysics()
 		this.player.position = level.cue_pos;
 		this.player.animation.play("idle");
 		let playerCollider = new Circle(Vec2.ZERO, 32)
 		this.player.setCollisionShape(playerCollider)
-		this.player.addAI(CuePlayerController, {owner: this.player});
+
+
+		this.player.addAI(CuePlayerController, {owner: this.player, arrow: arrow});
 
 		for (let asteroid of level.asteroids) {
 			let currAsteroid = this.add.sprite("asteroid", "primary")
