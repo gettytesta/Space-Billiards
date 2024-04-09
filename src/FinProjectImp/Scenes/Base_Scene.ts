@@ -8,16 +8,18 @@ import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
 import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import AsteroidAI from "../AI/AsteroidAI";
-import { GameEvents } from "../HW2_Enums";
+import { GameEvents } from "../GameEnums";
 import CuePlayerController from "../AI/CuePlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
-import GameOver from "./GameOver";
+import GameOver from "./Game_Over";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import Layer from "../../Wolfie2D/Scene/Layer";
-import ClearStage from "./ClearStage";
+import ClearStage from "./Clear_Stage";
 import Game from "../../Wolfie2D/Loop/Game";
 import Levels from "./Levels";
-import Level from "./LevelType";
+import Level, { Asteroid, WormholePair } from "./LevelType";
+import Debug from "../../Wolfie2D/Debug/Debug";
+import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
 
 
 // TESTA - This file should be used for any scene that we create. 
@@ -35,6 +37,7 @@ export default class Base_Scene extends Scene {
 	private player: AnimatedSprite;
 	private playerDead: boolean = false;
 	private playerClearStage: boolean = false;
+	private playerJustTouchedWormhole: boolean = false;
 
 	// TESTA - I'm not exactly sure if this should be stored here. It will represent what level we're on.
 	private levelNumber = 1;
@@ -43,6 +46,9 @@ export default class Base_Scene extends Scene {
 	private asteroids: Array<Sprite> = new Array();
 
 	private planets: Array<AnimatedSprite> = new Array(2);
+
+	private wormholes: Array<Sprite> = new Array();
+	private wormholePairs: Array<WormholePair> = new Array();
 
 	private black_hole: Sprite
 
@@ -59,7 +65,10 @@ export default class Base_Scene extends Scene {
 	// Gleb - These are some UI components that will be useful for handling fire and eventually switching between balls
 	private uiComponents: Layer;
 
-	// HOMEWORK 2 - TODO
+	initScene(init: Record<string, any>): void {
+		this.levelNumber = init.levelNum
+	}
+
 	/*
 	 * loadScene() overrides the parent class method. It allows us to load in custom assets for
 	 * use in our scene.
@@ -70,6 +79,10 @@ export default class Base_Scene extends Scene {
 
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
+		this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
+		this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
+		this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
+		this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
 		this.load.image("black hole", "hw2_assets/sprites/Black Hole TEMP.png")
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 		// Load in the background image
@@ -124,6 +137,7 @@ export default class Base_Scene extends Scene {
 		this.initializeObjectPools();
 
 		// Subscribe to events
+		this.receiver.subscribe(GameEvents.PLANET_HIT_WORMHOLE)
 		this.receiver.subscribe(GameEvents.PLANET_HIT_BLACKHOLE)
 		this.receiver.subscribe(GameEvents.PLANET_COLLISION)
 		this.receiver.subscribe(GameEvents.PLANET_OOB)
@@ -133,6 +147,8 @@ export default class Base_Scene extends Scene {
 	 * updateScene() is where the real work is done. This is where any custom behavior goes.
 	 */
 	updateScene(deltaT: number){
+		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
+
 		// Handle events we care about
 		this.handleEvents();
 
@@ -140,6 +156,21 @@ export default class Base_Scene extends Scene {
 
 		// Handle timers
 		this.handleTimers(deltaT);
+
+		for (let asteroid of level.asteroids) {
+			if(asteroid.position.distanceTo(this.player.position) > asteroid.mass)
+				continue;
+			let deltaV = new Vec2();
+			deltaV.copy(asteroid.position);
+			deltaV.sub(this.player.position);
+
+			let distance = deltaV.mag();
+
+			deltaV.normalize();
+			deltaV.scale((asteroid.mass - distance + 20) * 3);
+
+			(this.player.ai as CuePlayerController).assignedVelocity.add(deltaV.scaled(deltaT))
+		}
 
 		// Get the viewport center and padded size
 		const viewportCenter = this.viewport.getCenter().clone();
@@ -169,8 +200,26 @@ export default class Base_Scene extends Scene {
 			currAsteroid.scale = new Vec2(2, 2)
 			currAsteroid.position = asteroid.position
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 50));
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 30));
 			this.asteroids.push(currAsteroid)
+		}
+
+		let colorIndex = 0
+		let colors = ["white", "red", "blue", "green"]
+		for (let wormholePair of level.wormholePairs) {
+			let color = colors[colorIndex % (colors.length+1)]
+			colorIndex++
+			for (let i of [0, 1]) {
+				let currWormhole = this.add.sprite("wormhole_" + color, "primary")
+				let wScale = .3
+				currWormhole.scale = new Vec2(wScale, wScale);
+				currWormhole.position = wormholePair.positions[i]
+				currWormhole.setCollisionShape(new Circle(Vec2.ZERO, 50));
+				// TODO(cheryl): is this a reference or a copy?
+				wormholePair.spriteIDs[i] = currWormhole.id
+				this.wormholes.push(currWormhole)
+			}
+			this.wormholePairs.push(wormholePair)
 		}
 
 		this.black_hole = this.add.sprite("black hole", "primary")
@@ -219,6 +268,23 @@ export default class Base_Scene extends Scene {
 
 			if(event.type === GameEvents.PLANET_COLLISION){
 				this.playerDead = true;
+			} else if (event.type === GameEvents.PLANET_HIT_WORMHOLE) {
+				let level : Level = Levels.getLevel(this.viewport, this.levelNumber);
+				console.log(level)
+				let id = event.data.get("wormholeID")
+				console.log("HIT WORMHOLE")
+
+				console.log("Checking wormhole id " + id)
+				for (let wormholePair of this.wormholePairs) {
+					console.log("CHECKING PAIR with ids " + wormholePair.spriteIDs[0] + " and " + wormholePair.spriteIDs[1])
+					if (wormholePair.spriteIDs.includes(id)) {
+						console.log("FOUND PAIR")
+						if (wormholePair.spriteIDs[0] === id)
+							this.player.position.copy(wormholePair.positions[1])
+						else
+							this.player.position.copy(wormholePair.positions[0])
+					}
+				}
 			} else if (event.type === GameEvents.PLANET_HIT_BLACKHOLE){
 				this.playerClearStage = true;
 			} else if (event.type === GameEvents.PLANET_OOB){
@@ -251,6 +317,18 @@ export default class Base_Scene extends Scene {
 				this.emitter.fireEvent(GameEvents.PLANET_COLLISION, {id: this.player.id})
 			}
 		}
+
+		let touchedWormhole = false
+		for (let wormhole of this.wormholes) {
+			if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>wormhole.collisionShape)) {
+				if(!this.playerJustTouchedWormhole)
+					this.emitter.fireEvent(GameEvents.PLANET_HIT_WORMHOLE, {playerID: this.player.id, wormholeID: wormhole.id})
+				touchedWormhole = true
+				this.playerJustTouchedWormhole = true
+			}
+		}
+		if (!touchedWormhole)
+			this.playerJustTouchedWormhole = false
 
 		const viewportCenter = this.viewport.getCenter().clone();
 		const paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.WORLD_PADDING.scaled(2));
@@ -315,5 +393,33 @@ export default class Base_Scene extends Scene {
 		}
 		return false
 	}
+
+	render(): void {
+        // Get the visible set of nodes
+        let visibleSet = this.sceneGraph.getVisibleSet();
+
+        // Add parallax layer items to the visible set (we're rendering them all for now)
+        this.parallaxLayers.forEach(key => {
+            let pLayer = this.parallaxLayers.get(key);
+            for(let node of pLayer.getItems()){
+                if(node instanceof CanvasNode){
+                    visibleSet.push(node);
+                }
+            }
+        });
+
+        // Send the visible set, tilemaps, and uiLayers to the renderer
+        this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers);
+
+		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
+		for (let asteroid of level.asteroids) {
+			Debug.drawCircle(asteroid.position, asteroid.mass, false, Color.WHITE);
+		}
+
+        let nodes = this.sceneGraph.getAllNodes();
+        this.tilemaps.forEach(tilemap => tilemap.visible ? nodes.push(tilemap) : 0);
+        Debug.setNodes(nodes);
+    }
+
 
 }

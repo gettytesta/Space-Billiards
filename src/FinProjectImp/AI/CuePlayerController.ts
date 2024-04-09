@@ -10,7 +10,7 @@ import Graphic from "../../Wolfie2D/Nodes/Graphic";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
-import { GameEvents } from "../HW2_Enums";
+import { GameEvents } from "../GameEnums";
 
 
 export default class CuePlayerController implements AI{

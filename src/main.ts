@@ -1,5 +1,5 @@
 import Game from "./Wolfie2D/Loop/Game";
-import MainMenu from "./FinProjectImp/Scenes/MainMenu";
+import MainMenu from "./FinProjectImp/Scenes/Main_Menu";
 import AABB from "./Wolfie2D/DataTypes/Shapes/AABB";
 import Vec2 from "./Wolfie2D/DataTypes/Vec2";
 import Circle from "./Wolfie2D/DataTypes/Shapes/Circle";
