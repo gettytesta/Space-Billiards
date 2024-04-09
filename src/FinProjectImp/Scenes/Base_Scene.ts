@@ -18,6 +18,8 @@ import ClearStage from "./Clear_Stage";
 import Game from "../../Wolfie2D/Loop/Game";
 import Levels from "./Levels";
 import Level, { Asteroid, WormholePair } from "./LevelType";
+import Debug from "../../Wolfie2D/Debug/Debug";
+import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
 
 
 // TESTA - This file should be used for any scene that we create. 
@@ -136,6 +138,8 @@ export default class Base_Scene extends Scene {
 	 * updateScene() is where the real work is done. This is where any custom behavior goes.
 	 */
 	updateScene(deltaT: number){
+		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
+
 		// Handle events we care about
 		this.handleEvents();
 
@@ -143,6 +147,21 @@ export default class Base_Scene extends Scene {
 
 		// Handle timers
 		this.handleTimers(deltaT);
+
+		for (let asteroid of level.asteroids) {
+			if(asteroid.position.distanceTo(this.player.position) > asteroid.mass)
+				continue;
+			let deltaV = new Vec2();
+			deltaV.copy(asteroid.position);
+			deltaV.sub(this.player.position);
+
+			let distance = deltaV.mag();
+
+			deltaV.normalize();
+			deltaV.scale((asteroid.mass - distance + 20) * 3);
+
+			(this.player.ai as CuePlayerController).assignedVelocity.add(deltaV.scaled(deltaT))
+		}
 
 		// Get the viewport center and padded size
 		const viewportCenter = this.viewport.getCenter().clone();
@@ -169,7 +188,7 @@ export default class Base_Scene extends Scene {
 			currAsteroid.scale = new Vec2(2, 2)
 			currAsteroid.position = asteroid.position
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 50));
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 30));
 			this.asteroids.push(currAsteroid)
 		}
 
@@ -241,6 +260,7 @@ export default class Base_Scene extends Scene {
 				let level : Level = Levels.getLevel(this.viewport, this.levelNumber);
 				console.log(level)
 				let id = event.data.get("wormholeID")
+				console.log("HIT WORMHOLE")
 
 				console.log("Checking wormhole id " + id)
 				for (let wormholePair of this.wormholePairs) {
@@ -253,7 +273,6 @@ export default class Base_Scene extends Scene {
 							this.player.position.copy(wormholePair.positions[0])
 					}
 				}
-				console.log("HIT WORMHOLE")
 			} else if (event.type === GameEvents.PLANET_HIT_BLACKHOLE){
 				this.playerClearStage = true;
 			} else if (event.type === GameEvents.PLANET_OOB){
@@ -362,5 +381,33 @@ export default class Base_Scene extends Scene {
 		}
 		return false
 	}
+
+	render(): void {
+        // Get the visible set of nodes
+        let visibleSet = this.sceneGraph.getVisibleSet();
+
+        // Add parallax layer items to the visible set (we're rendering them all for now)
+        this.parallaxLayers.forEach(key => {
+            let pLayer = this.parallaxLayers.get(key);
+            for(let node of pLayer.getItems()){
+                if(node instanceof CanvasNode){
+                    visibleSet.push(node);
+                }
+            }
+        });
+
+        // Send the visible set, tilemaps, and uiLayers to the renderer
+        this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers);
+
+		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
+		for (let asteroid of level.asteroids) {
+			Debug.drawCircle(asteroid.position, asteroid.mass, false, Color.WHITE);
+		}
+
+        let nodes = this.sceneGraph.getAllNodes();
+        this.tilemaps.forEach(tilemap => tilemap.visible ? nodes.push(tilemap) : 0);
+        Debug.setNodes(nodes);
+    }
+
 
 }
