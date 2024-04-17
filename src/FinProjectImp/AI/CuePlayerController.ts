@@ -186,4 +186,8 @@ export default class CuePlayerController implements AI {
 			this.owner.animation.playIfNotAlready("idle");
 		}
 	}
+
+	destroy(): void {
+		
+	}
 } 

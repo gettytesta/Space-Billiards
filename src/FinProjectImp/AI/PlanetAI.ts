@@ -45,4 +45,8 @@ export default class PlanetAI implements AI {
         if(this.owner.visible && !this.paused)
             this.owner.position.add(this.direction.scaled(this.planetSpeed * deltaT));
     }
+
+    destroy(): void {
+		
+	}
 }

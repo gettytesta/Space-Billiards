@@ -81,15 +81,20 @@ export default class Base_Scene extends Scene {
 
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
-		// this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
-		// this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
-		// this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
-		// this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
+		this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
+		this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
+		this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
+		this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
 		this.load.image("black hole", "hw2_assets/sprites/Black Hole TEMP.png")
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 
 		// Load in the background image
 		this.load.image("space", "hw2_assets/sprites/space.png");
+	}
+
+	unloadScene(): void {
+	
+		this.resourceManager.unloadAllResources();
 	}
 
 	/*
@@ -161,7 +166,7 @@ export default class Base_Scene extends Scene {
 		this.handleTimers(deltaT);
 
 		for (let asteroid of level.asteroids) {
-			if(asteroid.position.distanceTo(this.player.position) > asteroid.mass + 32)
+			if(asteroid.position.distanceTo(this.player.position) > asteroid.mass)
 				continue;
 			let deltaV = new Vec2();
 			deltaV.copy(asteroid.position);
@@ -307,10 +312,10 @@ export default class Base_Scene extends Scene {
 	handleTimers(deltaT: number): void {
 		if (this.playerDead) {
 			this.gameEndTimer += deltaT;
-			this.sceneManager.changeScene(GameOver, {});
+			this.sceneManager.changeToScene(GameOver, {});
 		} else if (this.playerClearStage) {
 			this.gameEndTimer += deltaT;
-			this.sceneManager.changeScene(ClearStage, {});
+			this.sceneManager.changeToScene(ClearStage, {});
 		}
 	}
 
@@ -429,6 +434,4 @@ export default class Base_Scene extends Scene {
         this.tilemaps.forEach(tilemap => tilemap.visible ? nodes.push(tilemap) : 0);
         Debug.setNodes(nodes);
     }
-
-
 }

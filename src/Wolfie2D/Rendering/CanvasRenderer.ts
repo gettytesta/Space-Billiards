@@ -20,6 +20,8 @@ import TextInput from "../Nodes/UIElements/TextInput";
 import AnimatedSprite from "../Nodes/Sprites/AnimatedSprite";
 import Vec2 from "../DataTypes/Vec2";
 import Color from "../Utils/Color";
+import Line from "../Nodes/Graphics/Line";
+import Debug from "../Debug/Debug";
 
 /**
  * An implementation of the RenderingManager class using CanvasRenderingContext2D.
@@ -112,9 +114,19 @@ export default class CanvasRenderer extends RenderingManager {
         }
 
         // Render the uiLayers on top of everything else
-        uiLayers.forEach(key => {
-			if(!uiLayers.get(key).isHidden())
-				uiLayers.get(key).getItems().forEach(node => this.renderNode(<CanvasNode>node))
+        let sortedUILayers = new Array<UILayer>();
+
+        uiLayers.forEach(key => sortedUILayers.push(uiLayers.get(key)));
+
+        sortedUILayers = sortedUILayers.sort((ui1, ui2) => ui1.getDepth() - ui2.getDepth());
+
+        sortedUILayers.forEach(uiLayer => {
+			if(!uiLayer.isHidden())
+				uiLayer.getItems().forEach(node => {
+                    if((<CanvasNode>node).visible){
+                        this.renderNode(<CanvasNode>node)
+                    }
+                })
 		});
     }
 
@@ -141,6 +153,9 @@ export default class CanvasRenderer extends RenderingManager {
         this.ctx.setTransform(xScale, 0, 0, yScale, (node.position.x - this.origin.x)*this.zoom, (node.position.y - this.origin.y)*this.zoom);
         this.ctx.rotate(-node.rotation);
         let globalAlpha = this.ctx.globalAlpha;
+        if(node instanceof Rect){
+            Debug.log("node" + node.id, "Node" + node.id + " Alpha: " + node.alpha);
+        }
         this.ctx.globalAlpha = node.alpha;
         
         if(node instanceof AnimatedSprite){
@@ -205,6 +220,8 @@ export default class CanvasRenderer extends RenderingManager {
     protected renderGraphic(graphic: Graphic): void {
         if(graphic instanceof Point){
             this.graphicRenderer.renderPoint(<Point>graphic, this.zoom);
+        } else if(graphic instanceof Line){
+            this.graphicRenderer.renderLine(<Line>graphic, this.origin, this.zoom);
         } else if(graphic instanceof Rect){
             this.graphicRenderer.renderRect(<Rect>graphic, this.zoom);
         }

@@ -1,6 +1,7 @@
 import Actor from "../DataTypes/Interfaces/Actor";
 import Updateable from "../DataTypes/Interfaces/Updateable";
 import AI from "../DataTypes/Interfaces/AI";
+import GoapAI from "../DataTypes/Interfaces/GoapAI"
 import Map from "../DataTypes/Map";
 
 /**
@@ -23,8 +24,15 @@ export default class AIManager implements Updateable {
 	 * @param actor The actor to register
 	 */
 	registerActor(actor: Actor): void {
-		actor.actorId = this.actors.length;
 		this.actors.push(actor);
+	}
+
+	removeActor(actor: Actor): void {
+		let index = this.actors.indexOf(actor);
+
+		if(index !== -1){
+			this.actors.splice(index, 1);
+		}
 	}
 
 	/**
@@ -32,7 +40,7 @@ export default class AIManager implements Updateable {
 	 * @param name The name of the AI to register
 	 * @param constr The constructor for the AI
 	 */
-	registerAI(name: string, constr: new <T extends AI>() => T ): void {
+	registerAI(name: string, constr: new <T extends AI | GoapAI>() => T ): void {
 		this.registeredAI.add(name, constr);
 	}
 
@@ -41,7 +49,7 @@ export default class AIManager implements Updateable {
 	 * @param name The name of the AI to add
 	 * @returns A new AI instance
 	 */
-	generateAI(name: string): AI {
+	generateAI(name: string): AI | GoapAI {
 		if(this.registeredAI.has(name)){
 			return new (this.registeredAI.get(name))();
 		} else {

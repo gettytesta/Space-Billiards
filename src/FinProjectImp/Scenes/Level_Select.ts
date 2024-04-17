@@ -60,6 +60,10 @@ export default class Level_Select extends Scene {
         this.receiver.subscribe(GameEvents.MENU)
     }
 
+    unloadScene(): void {
+        this.resourceManager.unloadAllResources()
+    }
+
     updateScene(){
         while(this.receiver.hasNextEvent()){
             let event = this.receiver.getNextEvent();
@@ -67,13 +71,13 @@ export default class Level_Select extends Scene {
             console.log(event);
 
             if(event.type === GameEvents.MENU){
-                this.sceneManager.changeScene(MainMenu, {});
+                this.sceneManager.changeToScene(MainMenu, {});
             } else if(event.type === GameEvents.LEVEL1){
-                this.sceneManager.changeScene(Base_Scene, {levelNum: 1});
+                this.sceneManager.changeToScene(Base_Scene, {levelNum: 1});
             } else if(event.type === GameEvents.LEVEL2){
-                this.sceneManager.changeScene(Base_Scene, {levelNum: 2});
+                this.sceneManager.changeToScene(Base_Scene, {levelNum: 2});
             } else if(event.type === GameEvents.LEVEL3){
-                this.sceneManager.changeScene(Base_Scene, {levelNum: 3});
+                this.sceneManager.changeToScene(Base_Scene, {levelNum: 3});
             }
         }
     }

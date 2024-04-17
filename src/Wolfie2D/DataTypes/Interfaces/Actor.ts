@@ -1,18 +1,16 @@
 import NavigationPath from "../../Pathfinding/NavigationPath";
 import AI from "./AI";
+import GoapAI from "./GoapAI";
 
 /**
  * A game object that has an AI and can perform its own actions every update cycle
  */
 export default interface Actor {
     /** The AI of the actor */
-    ai: AI;
+    ai: AI | GoapAI;
 
     /** The activity status of the actor */
     aiActive: boolean;
-
-    /** The id of the actor according to the @reference[AIManager] */
-    actorId: number;
 
     /** The path that navigation will follow */
     path: NavigationPath;
@@ -24,8 +22,9 @@ export default interface Actor {
      * Adds an AI to this Actor.
      * @param ai The name of the AI, or the actual AI, to add to the Actor.
      * @param options The options to give to the AI for initialization.
+     * @param type The type of the AI, 0 for AI, 1 for GoapAI, defaults to assume AI
      */
-    addAI<T extends AI>(ai: string | (new () => T), options: Record<string, any>): void;
+    addAI<T extends AI>(ai: string | (new () => T), options: Record<string, any>, type?: number): void;
 
     /**
      * Sets the AI to start/stop for this Actor.
@@ -33,4 +32,11 @@ export default interface Actor {
      * @param options An object that allows options to be pased to the activated AI
      */
     setAIActive(active: boolean, options: Record<string, any>): void;
+
+    /**
+     * Moves this GameNode along a path
+     * @param speed The speed to move with
+     * @param path The path we're moving along
+     */
+    moveOnPath(speed: number, path: NavigationPath): void;
 }

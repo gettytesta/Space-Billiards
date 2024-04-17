@@ -23,6 +23,10 @@ export default class MainMenu extends Scene {
 		this.load.image("drag_diagram", "hw2_assets/sprites/drag_diagram.png")
 	}
 
+    unloadScene(): void {
+        this.resourceManager.unloadAllResources()
+    }
+
     startScene(){
 		this.addLayer("primary", 5);
 
@@ -135,7 +139,7 @@ export default class MainMenu extends Scene {
             console.log(event);
 
             if(event.type === GameEvents.LEVEL_SELECT){
-                this.sceneManager.changeScene(Level_Select, {});
+                this.sceneManager.changeToScene(Level_Select, {});
             }
 
             if(event.type === GameEvents.CONTROLS){
