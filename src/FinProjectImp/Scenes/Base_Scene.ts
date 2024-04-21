@@ -81,11 +81,11 @@ export default class Base_Scene extends Scene {
 
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
-		this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
-		this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
-		this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
-		this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
-		this.load.image("black hole", "hw2_assets/sprites/Black Hole TEMP.png")
+		// this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
+		// this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
+		// this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
+		// this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
+		this.load.image("black_hole", "hw2_assets/sprites/Black Hole TEMP.png")
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 
 		// Load in the background image
@@ -93,7 +93,6 @@ export default class Base_Scene extends Scene {
 	}
 
 	unloadScene(): void {
-	
 		this.resourceManager.unloadAllResources();
 	}
 
@@ -210,7 +209,7 @@ export default class Base_Scene extends Scene {
 
 		for (let asteroid of level.asteroids) {
 			let currAsteroid = this.add.sprite("asteroid", "primary")
-			currAsteroid.scale = new Vec2(2, 2)
+			currAsteroid.scale.set(2, 2)
 			currAsteroid.position = asteroid.position
 			currAsteroid.addAI(AsteroidAI)
 			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 20));
@@ -224,8 +223,7 @@ export default class Base_Scene extends Scene {
 			colorIndex++
 			for (let i of [0, 1]) {
 				let currWormhole = this.add.sprite("wormhole_" + color, "primary")
-				let wScale = .3
-				currWormhole.scale = new Vec2(wScale, wScale);
+				currWormhole.scale.set(.3,.3)
 				currWormhole.position = wormholePair.positions[i]
 				currWormhole.setCollisionShape(new Circle(Vec2.ZERO, 50));
 				// TODO(cheryl): is this a reference or a copy?
@@ -235,11 +233,11 @@ export default class Base_Scene extends Scene {
 			this.wormholePairs.push(wormholePair)
 		}
 
-		this.black_hole = this.add.sprite("black hole", "primary")
+		this.black_hole = this.add.sprite("black_hole", "primary")
 		this.black_hole.setCollisionShape(new Circle(Vec2.ZERO, 50))
 		this.black_hole.position = level.black_hole_pos
 		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
-		this.black_hole.scale = new Vec2(3, 3)
+		this.black_hole.scale.set(3,3)
 	}
 
 	/**

@@ -12,8 +12,6 @@ export default class Level_Select extends Scene {
     // Layers, for multiple main menu screens
     private levelSelect: Layer;
 
-    loadScene() {}
-
     startScene() {
         const center = this.viewport.getCenter();
 

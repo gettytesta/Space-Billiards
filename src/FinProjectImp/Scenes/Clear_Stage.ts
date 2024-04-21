@@ -7,9 +7,6 @@ import Color from "../../Wolfie2D/Utils/Color";
 import MainMenu from "./Main_Menu";
 
 export default class ClearStage extends Scene {
-    initScene(options: Record<string, any>){
-    }
-
     startScene() {
         const center = this.viewport.getCenter();
 
