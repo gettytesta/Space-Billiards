@@ -3,6 +3,7 @@ import Vec2 from "../../Wolfie2D/DataTypes/Vec2";
 import Debug from "../../Wolfie2D/Debug/Debug";
 import Emitter from "../../Wolfie2D/Events/Emitter";
 import GameEvent from "../../Wolfie2D/Events/GameEvent";
+import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
 import Receiver from "../../Wolfie2D/Events/Receiver";
 import Input from "../../Wolfie2D/Input/Input";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
@@ -27,8 +28,8 @@ export default class CuePlayerController implements AI {
 
 	// Gleb Changes - we need to have a way of measuring the Vector between the mouse start dragging, and end dragging
 	private mouseDragging: boolean = false; 
-	private mouseStart: Vec2 =  new Vec2(0,0);
-	private mouseEnd: Vec2 =  new Vec2(0,0);
+	private mouseStart: Vec2 = new Vec2(0,0);
+	private mouseEnd: Vec2 = new Vec2(0,0);
 	public assignedVelocity: Vec2 = new Vec2(0,0)
 	private trajectorySet: boolean = false; 
 	// If the fire button was pressed
@@ -62,6 +63,16 @@ export default class CuePlayerController implements AI {
 		this.receiver.subscribe(GameEvents.FIRE_BALL)
 	}
 
+	resetAI(owner: AnimatedSprite): void {
+		this.directionArrow.visible = false;
+		this.mouseDragging = false; 
+		this.mouseStart = new Vec2(0,0);
+		this.mouseEnd = new Vec2(0,0);
+		this.assignedVelocity = new Vec2(0,0)
+		this.trajectorySet = false
+		this.didFire = false
+	}
+
 	activate(options: Record<string, any>){};
 
 	handleEvent(event: GameEvent): void {
@@ -72,15 +83,13 @@ export default class CuePlayerController implements AI {
 		if(event.type === GameEvents.FIRE_BALL)
 		{
 			if (this.trajectorySet) {
-				this.didFire = true;
-				this.directionArrow.visible = false
+				if (this.mouseStart.distanceTo(this.mouseEnd) > 50 || true) {
+					// There will definitely be a sound for this but not here
+					// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "fire", loop: false, holdReference: false});
+					this.didFire = true;
+					this.directionArrow.visible = false
+				}
 			}
-		}
-		if(event.type === GameEvents.RESET_TRAJECTORY)
-		{
-			this.trajectorySet = false; 
-			this.directionArrow.visible = false;
-			this.mouseDragging = false;
 		}
 		if(event.type === GameEvents.PLAY_GAME){
 			this.mouseDragging = false; 
@@ -89,6 +98,7 @@ export default class CuePlayerController implements AI {
 	}
 
 	update(deltaT: number): void {
+		console.log(this.mouseStart.distanceTo(this.mouseEnd))
 		
 		if(this.hitPlanet) return;
 		
