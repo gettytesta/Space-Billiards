@@ -18,6 +18,7 @@ import Level, { Asteroid, WormholePair } from "./LevelType";
 import Debug from "../../Wolfie2D/Debug/Debug";
 import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
 import MainMenu from "./Main_Menu";
+import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
 
 
 // TESTA - This file should be used for any scene that we create. 
@@ -56,12 +57,17 @@ export default class Base_Scene extends Scene {
 	// Other variables
 	private WORLD_PADDING: Vec2 = new Vec2(64, 64);
 
-	// Gleb - These are some UI components that will be useful for handling fire and eventually switching between balls
+	// Timer for the tutorial cutscene
+	private cutsceneTimer = 0;
+
+	// Each layer used for the game
 	private nextLevel: Layer;
 	private tryAgain: Layer;
 	private gameLayer: Layer;
 	private uiLayer: Layer;
 	private backgroundLayer: Layer;
+	private cutscene1Layer: Layer;
+	private cutscene2Layer: Layer;
 
 
 	initScene(init: Record<string, any>): void {
@@ -87,6 +93,15 @@ export default class Base_Scene extends Scene {
 
 		// Load in the background image
 		this.load.image("space", "hw2_assets/sprites/space.png");
+
+		// Load in the sfx
+		this.load.audio("fire", "hw2_assets/sfx/fire.wav")
+		this.load.audio("planet_explode", "hw2_assets/sfx/planet_explode.wav")
+		this.load.audio("oob", "hw2_assets/sfx/oob.wav")
+
+		// Load in the cutscene images for the tutorial
+		this.load.image("cutscene1", "hw2_assets/cutscene/Space Billiards CS1.png")
+		this.load.image("cutscene2", "hw2_assets/cutscene/Space Billiards CS2.png")
 	}
 
 	unloadScene(): void {
@@ -131,12 +146,24 @@ export default class Base_Scene extends Scene {
 		this.receiver.subscribe(GameEvents.MENU)
 		this.receiver.subscribe(GameEvents.TRY_AGAIN)
 		this.receiver.subscribe(GameEvents.NEXT_LEVEL)
+
+
+		// If we've selected the Tutorial Level
+		if (this.levelNumber === 0) {
+			this.backgroundLayer.setHidden(true)
+			this.gameLayer.setHidden(true)
+			this.uiLayer.setHidden(true)
+
+			this.cutscene1Layer.setHidden(false)
+		}
 	}
 
 	/*
 	 * updateScene() is where the real work is done. This is where any custom behavior goes.
 	 */
-	updateScene(deltaT: number){
+	updateScene(deltaT: number) {
+		this.handleCutscene(deltaT);
+
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
 
 		// Handle events we care about
@@ -323,6 +350,23 @@ export default class Base_Scene extends Scene {
 		retMenu.borderColor = Color.WHITE;
 		retMenu.backgroundColor = Color.BLACK;
 		retMenu.onClickEventId = GameEvents.MENU;
+
+
+
+		/**
+		 * TUTORIAL CUTSCENE
+		 */
+		this.cutscene1Layer = this.addLayer("cutscene1Layer", 3)
+		this.cutscene1Layer.setHidden(true)
+
+		const cs1 = this.add.sprite("cutscene1", "cutscene1Layer")
+		cs1.position = this.viewport.getCenter()
+
+		this.cutscene2Layer = this.addLayer("cutscene2Layer", 3)
+		this.cutscene2Layer.setHidden(true)
+
+		const cs2 = this.add.sprite("cutscene2", "cutscene2Layer")
+		cs2.position = this.viewport.getCenter()
 	}
 
 	resetLevel(levelNumber: number): void {
@@ -379,6 +423,23 @@ export default class Base_Scene extends Scene {
 
 		this.playerDead = false;
 		this.playerClearStage = false;
+	}
+
+	handleCutscene(deltaT: number): void {
+		if (this.levelNumber !== 0 || this.cutsceneTimer > 16) {
+			return
+		}
+
+		this.cutsceneTimer += deltaT
+		if (this.cutsceneTimer > 16) {
+			this.cutscene2Layer.setHidden(true)
+			this.gameLayer.setHidden(false)
+			this.uiLayer.setHidden(false)
+			this.backgroundLayer.setHidden(false)
+		} else if (this.cutsceneTimer > 8) {
+			this.cutscene1Layer.setHidden(true)
+			this.cutscene2Layer.setHidden(false)
+		}
 	}
 
 	handleEvents() {
@@ -442,6 +503,7 @@ export default class Base_Scene extends Scene {
 		for (let asteroid of this.asteroids) {
 			if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>asteroid.collisionShape)) {
 				this.emitter.fireEvent(GameEvents.PLANET_COLLISION, {id: this.player.id})
+				this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "planet_explode", loop: false, holdReference: false});
 			}
 		}
 
@@ -463,6 +525,7 @@ export default class Base_Scene extends Scene {
 
 		if (this.checkOffScreen(this.player, viewportCenter, paddedViewportSize)) {
 			this.emitter.fireEvent(GameEvents.PLANET_OOB, {id: this.player.id})
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "oob", loop: false, holdReference: false});
 		}
 	}
 

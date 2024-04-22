@@ -3,6 +3,7 @@ import Vec2 from "../../Wolfie2D/DataTypes/Vec2";
 import Debug from "../../Wolfie2D/Debug/Debug";
 import Emitter from "../../Wolfie2D/Events/Emitter";
 import GameEvent from "../../Wolfie2D/Events/GameEvent";
+import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
 import Receiver from "../../Wolfie2D/Events/Receiver";
 import Input from "../../Wolfie2D/Input/Input";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
@@ -83,6 +84,8 @@ export default class CuePlayerController implements AI {
 		{
 			if (this.trajectorySet) {
 				if (this.mouseStart.distanceTo(this.mouseEnd) > 50 || true) {
+					// There will definitely be a sound for this but not here
+					// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "fire", loop: false, holdReference: false});
 					this.didFire = true;
 					this.directionArrow.visible = false
 				}

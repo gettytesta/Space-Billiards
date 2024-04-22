@@ -101,12 +101,20 @@ export default class MainMenu extends Scene {
         level3.onClickEventId = GameEvents.LEVEL3;
 
         // Add menu button
-        const menu = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x, center.y-300), text: "Main Menu"});
+        const menu = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x-180, center.y-300), text: "Main Menu"});
         menu.size.set(200, 50);
         menu.borderWidth = 2;
         menu.borderColor = Color.WHITE;
         menu.backgroundColor = Color.TRANSPARENT;
         menu.onClickEventId = GameEvents.MENU;
+
+        // Add tutorial button
+        const tutorial = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x+180, center.y-300), text: "Tutorial"});
+        tutorial.size.set(200, 50);
+        tutorial.borderWidth = 2;
+        tutorial.borderColor = Color.WHITE;
+        tutorial.backgroundColor = Color.TRANSPARENT;
+        tutorial.onClickEventId = GameEvents.TUTORIAL;
 
 
 
@@ -178,6 +186,7 @@ export default class MainMenu extends Scene {
         this.receiver.subscribe(GameEvents.CONTROLS);
         this.receiver.subscribe(GameEvents.ABOUT);
         this.receiver.subscribe(GameEvents.MENU);
+        this.receiver.subscribe(GameEvents.TUTORIAL);
         this.receiver.subscribe(GameEvents.LEVEL1);
         this.receiver.subscribe(GameEvents.LEVEL2);
         this.receiver.subscribe(GameEvents.LEVEL3);
@@ -223,6 +232,10 @@ export default class MainMenu extends Scene {
                 this.about.setHidden(true);
 				this.logo.visible = true;
 				this.dragDiagram.visible = false;
+            }
+
+            if (event.type === GameEvents.TUTORIAL) {
+                this.sceneManager.changeToScene(Base_Scene, {levelNum: 0});
             }
 
             if (event.type === GameEvents.LEVEL1){
