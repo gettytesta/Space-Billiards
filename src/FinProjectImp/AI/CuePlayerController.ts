@@ -35,6 +35,8 @@ export default class CuePlayerController implements AI {
 	// If the fire button was pressed
 	private didFire: boolean = false;
 
+	public paused = false;
+
 	// HOMEWORK 2 - TODO
 	/**
 	 * This method initializes all variables inside of this AI class, and sets
@@ -98,7 +100,9 @@ export default class CuePlayerController implements AI {
 	}
 
 	update(deltaT: number): void {
-		console.log(this.mouseStart.distanceTo(this.mouseEnd))
+		if (this.paused) {
+			return
+		}
 		
 		if(this.hitPlanet) return;
 		
