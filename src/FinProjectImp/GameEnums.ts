@@ -11,6 +11,7 @@ export enum GameEvents {
 	LEVEL_PASS = "LEVEL_PASS",
 	TRY_AGAIN = "TRY_AGAIN",
 
+	TUTORIAL = "TUTORIAL",
 	LEVEL1 = "LEVEL1",
 	LEVEL2 = "LEVEL2",
 	LEVEL3 = "LEVEL3",
@@ -20,7 +21,6 @@ export enum GameEvents {
 	LEVEL7 = "LEVEL7",
 	LEVEL8 = "LEVEL8",
 	LEVEL9 = "LEVEL9",
-
 
 	FIRE_BALL = "FIRE_BALL",
 
