@@ -11,15 +11,13 @@ import AsteroidAI from "../AI/AsteroidAI";
 import { GameEvents } from "../GameEnums";
 import CuePlayerController from "../AI/CuePlayerController";
 import Circle from "../../Wolfie2D/DataTypes/Shapes/Circle";
-import GameOver from "./Game_Over";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import Layer from "../../Wolfie2D/Scene/Layer";
-import ClearStage from "./Clear_Stage";
-import Game from "../../Wolfie2D/Loop/Game";
 import Levels from "./Levels";
 import Level, { Asteroid, WormholePair } from "./LevelType";
 import Debug from "../../Wolfie2D/Debug/Debug";
 import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
+import MainMenu from "./Main_Menu";
 
 
 // TESTA - This file should be used for any scene that we create. 
@@ -45,6 +43,7 @@ export default class Base_Scene extends Scene {
 	// TESTA - This will be our array for all asteroids in the scene.
 	private asteroids: Array<Sprite> = new Array();
 
+	// TESTA - IDK if we'll even do 2 planet gameplay so this might be unused
 	private planets: Array<AnimatedSprite> = new Array(2);
 
 	private wormholes: Array<Sprite> = new Array();
@@ -54,18 +53,16 @@ export default class Base_Scene extends Scene {
 
 	private arrow: Sprite
 
-	// Labels for the gui
-	private planetsLabel: Label;
-
-	// Timers
-	private gameEndTimer: number = 0;
-	private GAME_END_MAX_TIME: number = 3;
-
 	// Other variables
 	private WORLD_PADDING: Vec2 = new Vec2(64, 64);
 
 	// Gleb - These are some UI components that will be useful for handling fire and eventually switching between balls
-	private uiComponents: Layer;
+	private nextLevel: Layer;
+	private tryAgain: Layer;
+	private gameLayer: Layer;
+	private uiLayer: Layer;
+	private backgroundLayer: Layer;
+
 
 	initScene(init: Record<string, any>): void {
 		this.levelNumber = init.levelNum
@@ -100,30 +97,9 @@ export default class Base_Scene extends Scene {
 	 * startScene() allows us to add in the assets we loaded in loadScene() as game objects.
 	 * Everything here happens strictly before update
 	 */
-	startScene(){
-		// Gleb - Defining the UI Layer that will be used for actually firing the ship
-		const center = this.viewport.getCenter();
-
-        // The main menu
-        this.uiComponents = this.addUILayer("fireButton");
-		const fire = this.add.uiElement(UIElementType.BUTTON, "fireButton", {position: new Vec2(center.x, center.y - 100), text: "Fire!"});
-        fire.size.set(200, 50);
-		fire.position = new Vec2(1080,750)
-        fire.borderWidth = 2;
-        fire.borderColor = Color.WHITE;
-        fire.backgroundColor = Color.TRANSPARENT;
-        fire.onClickEventId = GameEvents.FIRE_BALL;
-
-		this.uiComponents = this.addUILayer("resetButton");
-		const reset = this.add.uiElement(UIElementType.BUTTON, "resetButton", {position: new Vec2(center.x, center.y - 100), text: "Reset Trajectory"});
-        reset.size.set(200, 50);
-		reset.position = new Vec2(1080,650)
-        reset.borderWidth = 2;
-        reset.borderColor = Color.WHITE;
-        reset.backgroundColor = Color.TRANSPARENT;
-        reset.onClickEventId = GameEvents.RESET_TRAJECTORY;
+	startScene() {
 		// Create a background layer
-		this.addLayer("background", 0);
+		this.backgroundLayer = this.addLayer("background", 0);
 
 		// Add in the background image
 		let bg = this.add.sprite("space", "background");
@@ -132,13 +108,15 @@ export default class Base_Scene extends Scene {
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
-		this.addLayer("primary", 5);
+		this.gameLayer = this.addLayer("primary", 5);
 
 		// Initialize the cues, asteroids, and black hole
 		this.initializeObjects(this.levelNumber);
 		
 		// Initialize the UI
 		this.initializeUI();
+
+		this.initializeLayers();
 
 		// Initialize object pools
 		this.initializeObjectPools();
@@ -148,6 +126,11 @@ export default class Base_Scene extends Scene {
 		this.receiver.subscribe(GameEvents.PLANET_HIT_BLACKHOLE)
 		this.receiver.subscribe(GameEvents.PLANET_COLLISION)
 		this.receiver.subscribe(GameEvents.PLANET_OOB)
+		this.receiver.subscribe(GameEvents.LEVEL_FAIL)
+		this.receiver.subscribe(GameEvents.LEVEL_PASS)
+		this.receiver.subscribe(GameEvents.MENU)
+		this.receiver.subscribe(GameEvents.TRY_AGAIN)
+		this.receiver.subscribe(GameEvents.NEXT_LEVEL)
 	}
 
 	/*
@@ -161,8 +144,17 @@ export default class Base_Scene extends Scene {
 
 		this.handleCollisions();
 
-		// Handle timers
-		this.handleTimers(deltaT);
+		if (this.playerDead) {
+			this.player.visible = false
+			this.player.position = level.cue_pos;
+			(<CuePlayerController>this.player._ai).resetAI(this.player)
+			this.emitter.fireEvent(GameEvents.LEVEL_FAIL, {levelNum: this.levelNumber})
+		} else if (this.playerClearStage) {
+			this.player.visible = false
+			this.player.position = level.cue_pos;
+			(<CuePlayerController>this.player._ai).resetAI(this.player)
+			this.emitter.fireEvent(GameEvents.LEVEL_PASS, {levelNum: this.levelNumber})
+		}
 
 		for (let asteroid of level.asteroids) {
 			if(asteroid.position.distanceTo(this.player.position) > asteroid.mass)
@@ -202,7 +194,7 @@ export default class Base_Scene extends Scene {
 		this.addLayer("arrow", 6);
 		this.arrow = this.add.sprite("arrow", "arrow")
 		this.arrow.isCollidable = false;
-		this.arrow.visible = false
+		this.arrow.visible = false;
 
 
 		this.player.addAI(CuePlayerController, {owner: this.player, arrow: this.arrow});
@@ -245,15 +237,27 @@ export default class Base_Scene extends Scene {
 	 */
 	initializeUI(): void {
 		// UILayer stuff
-		this.addUILayer("ui");
+		this.uiLayer = this.addUILayer("gameUi");
 
-		// TESTA - This definitely won't be needed in the final version
-		// The planets shoot at the same time, so this isn't needed
-		// Planets label
-		this.planetsLabel = <Label>this.add.uiElement(UIElementType.LABEL, "ui", {position: new Vec2(125, 40), text: `Planets Left: 1`});
-		this.planetsLabel.size.set(200, 50);
-		this.planetsLabel.setHAlign("left");
-		this.planetsLabel.textColor = Color.WHITE;
+		const center = this.viewport.getCenter();
+
+		// Fire Button
+		const fire = this.add.uiElement(UIElementType.BUTTON, "gameUi", {position: new Vec2(center.x, center.y - 100), text: "Fire!"});
+        fire.size.set(200, 50);
+		fire.position = new Vec2(1080,750)
+        fire.borderWidth = 2;
+        fire.borderColor = Color.ORANGE;
+        fire.backgroundColor = Color.BLACK;
+        fire.onClickEventId = GameEvents.FIRE_BALL;
+
+		// Pause Button - not functional yet
+		const pause = this.add.uiElement(UIElementType.BUTTON, "gameUi", {position: new Vec2(center.x, center.y - 100), text: "Pause"});
+        pause.size.set(200, 50);
+		pause.position = new Vec2(125,750)
+        pause.borderWidth = 2;
+        pause.borderColor = Color.WHITE;
+        pause.backgroundColor = Color.BLACK;
+        pause.onClickEventId = GameEvents.PAUSE;
 	}
 
 	/**
@@ -265,19 +269,123 @@ export default class Base_Scene extends Scene {
 		// TESTA - Leaving this function in here in case we need to use it later. Maybe.
 	}
 
+	initializeLayers(): void {
+		const center = this.viewport.getCenter();
+
+		/**
+		 * LEVEL PASS PAGE
+		 */
+		this.nextLevel = this.addUILayer("nextLevel")
+		this.nextLevel.setHidden(true)
+
+		const clearStage = <Label>this.add.uiElement(UIElementType.LABEL, "nextLevel", {position: new Vec2(center.x, center.y-100), text: "Stage Cleared!"});
+        clearStage.textColor = Color.WHITE;
+
+		// Next Level
+		const next = this.add.uiElement(UIElementType.BUTTON, "nextLevel", {position: new Vec2(center.x-200, center.y+100), text: "Next Level"});
+		next.size.set(230, 50);
+		next.borderWidth = 2;
+		next.borderColor = Color.WHITE;
+		next.backgroundColor = Color.BLACK;
+		next.onClickEventId = GameEvents.NEXT_LEVEL;
+
+		// Return to Menu
+		var retMenu = this.add.uiElement(UIElementType.BUTTON, "nextLevel", {position: new Vec2(center.x+200, center.y+100), text: "Return to Menu"});
+		retMenu.size.set(230, 50);
+		retMenu.borderWidth = 2;
+		retMenu.borderColor = Color.WHITE;
+		retMenu.backgroundColor = Color.BLACK;
+		retMenu.onClickEventId = GameEvents.MENU;
 
 
-	/* ########## UPDATE SCENE METHODS ########## */
-	
-	/**
-	 * Handles all events we care about in the update cycle.
-	 * Gets all events from the receiver this frame, and reacts to them accordingly
-	 */
-	handleEvents(){
+
+		/**
+		 * LEVEL FAIL PAGE
+		 */
+		this.tryAgain = this.addUILayer("tryAgain")
+		this.tryAgain.setHidden(true)
+
+		const gameOver = <Label>this.add.uiElement(UIElementType.LABEL, "tryAgain", {position: new Vec2(center.x, center.y-100), text: "Level Failed"});
+        gameOver.textColor = Color.WHITE;
+
+		// Try Again
+		const tryag = this.add.uiElement(UIElementType.BUTTON, "tryAgain", {position: new Vec2(center.x-200, center.y+100), text: "Try Again"});
+		tryag.size.set(230, 50);
+		tryag.borderWidth = 2;
+		tryag.borderColor = Color.WHITE;
+		tryag.backgroundColor = Color.BLACK;
+		tryag.onClickEventId = GameEvents.TRY_AGAIN;
+
+		// Return to Menu
+		retMenu = this.add.uiElement(UIElementType.BUTTON, "tryAgain", {position: new Vec2(center.x+200, center.y+100), text: "Return to Menu"});
+		retMenu.size.set(230, 50);
+		retMenu.borderWidth = 2;
+		retMenu.borderColor = Color.WHITE;
+		retMenu.backgroundColor = Color.BLACK;
+		retMenu.onClickEventId = GameEvents.MENU;
+	}
+
+	resetLevel(levelNumber: number): void {
+		var level : Level = Levels.getLevel(this.viewport, levelNumber);
+
+		this.player.visible = true
+		this.player.position = level.cue_pos;
+		this.player._velocity = Vec2.ZERO;
+		(<CuePlayerController>this.player._ai).resetAI(this.player)
+		this.player.animation.play("idle");
+
+		this.playerDead = false;
+		this.playerClearStage = false;
+	}
+
+	switchLevel(levelNumber: number): void {
+		var level : Level = Levels.getLevel(this.viewport, levelNumber);
+
+		this.player.visible = true
+		this.player.position = level.cue_pos;
+		this.player._velocity = Vec2.ZERO;
+		(<CuePlayerController>this.player._ai).resetAI(this.player)
+		this.player.animation.play("idle");
+
+
+		if (level.asteroids.length > this.asteroids.length) {
+			// Add more asteroids to this.asteroids
+			while (this.asteroids.length < level.asteroids.length) {
+				let currAsteroid = this.add.sprite("asteroid", "primary")
+				currAsteroid.scale.set(2, 2)
+				currAsteroid.addAI(AsteroidAI)
+				currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 20));
+				this.asteroids.push(currAsteroid)
+			}
+		} else if (level.asteroids.length < this.asteroids.length) {
+			// Remove sprites from list
+			// Bad way of doing this but I'm lazy
+			while (this.asteroids.length > level.asteroids.length) {
+				this.remove(this.asteroids.pop())
+			}
+		}
+		var i = 0;
+		for (let asteroid of level.asteroids) {
+			this.asteroids[i].position = asteroid.position
+			i++;
+		}
+
+
+		// TODO - Need to do wormhole stuff here
+
+
+		this.black_hole.position = level.black_hole_pos
+
+
+		this.playerDead = false;
+		this.playerClearStage = false;
+	}
+
+	handleEvents() {
 		while(this.receiver.hasNextEvent()){
 			let event = this.receiver.getNextEvent();
 
-			if(event.type === GameEvents.PLANET_COLLISION){
+			if (event.type === GameEvents.PLANET_COLLISION) {
 				this.playerDead = true;
 			} else if (event.type === GameEvents.PLANET_HIT_WORMHOLE) {
 				let level : Level = Levels.getLevel(this.viewport, this.levelNumber);
@@ -296,24 +404,32 @@ export default class Base_Scene extends Scene {
 							this.player.position.copy(wormholePair.positions[0])
 					}
 				}
-			} else if (event.type === GameEvents.PLANET_HIT_BLACKHOLE){
+			} else if (event.type === GameEvents.PLANET_HIT_BLACKHOLE) {
 				this.playerClearStage = true;
-			} else if (event.type === GameEvents.PLANET_OOB){
+			} else if (event.type === GameEvents.PLANET_OOB) {
 				this.playerDead = true;
-            }
-		}
-	}
-
-	/**
-	 * Updates all of our timers and handles timer related functions
-	 */
-	handleTimers(deltaT: number): void {
-		if (this.playerDead) {
-			this.gameEndTimer += deltaT;
-			this.sceneManager.changeToScene(GameOver, {});
-		} else if (this.playerClearStage) {
-			this.gameEndTimer += deltaT;
-			this.sceneManager.changeToScene(ClearStage, {});
+            } else if (event.type === GameEvents.LEVEL_FAIL) {
+				this.tryAgain.setHidden(false)
+				this.gameLayer.setHidden(true)
+				this.uiLayer.setHidden(true)
+			} else if (event.type === GameEvents.LEVEL_PASS) {
+				this.nextLevel.setHidden(false)
+				this.gameLayer.setHidden(true)
+				this.uiLayer.setHidden(true)
+			} else if (event.type === GameEvents.MENU) {
+				this.sceneManager.changeToScene(MainMenu)
+			} else if (event.type === GameEvents.NEXT_LEVEL) {
+				this.levelNumber += 1
+				this.switchLevel(this.levelNumber)
+				this.gameLayer.setHidden(false)
+				this.uiLayer.setHidden(false)
+				this.nextLevel.setHidden(true)
+			} else if (event.type === GameEvents.TRY_AGAIN) {
+				this.resetLevel(this.levelNumber)
+				this.gameLayer.setHidden(false)
+				this.uiLayer.setHidden(false)
+				this.tryAgain.setHidden(true)
+			}
 		}
 	}
 
@@ -424,8 +540,10 @@ export default class Base_Scene extends Scene {
         this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers);
 
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
-		for (let asteroid of level.asteroids) {
-			Debug.drawCircle(asteroid.position, asteroid.mass, false, Color.WHITE);
+		if (!this.playerClearStage && !this.playerDead) {
+			for (let asteroid of level.asteroids) {
+				Debug.drawCircle(asteroid.position, asteroid.mass, false, Color.WHITE);
+			}
 		}
 
         let nodes = this.sceneGraph.getAllNodes();
