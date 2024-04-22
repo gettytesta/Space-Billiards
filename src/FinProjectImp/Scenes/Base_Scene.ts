@@ -20,6 +20,7 @@ import Levels from "./Levels";
 import Level, { Asteroid, WormholePair } from "./LevelType";
 import Debug from "../../Wolfie2D/Debug/Debug";
 import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
+import Rect from "../../Wolfie2D/Nodes/Graphics/Rect";
 
 
 // TESTA - This file should be used for any scene that we create. 
@@ -44,15 +45,15 @@ export default class Base_Scene extends Scene {
 
 	// TESTA - This will be our array for all asteroids in the scene.
 	private asteroids: Array<Sprite> = new Array();
-
 	private planets: Array<AnimatedSprite> = new Array(2);
-
 	private wormholes: Array<Sprite> = new Array();
 	private wormholePairs: Array<WormholePair> = new Array();
-
 	private black_hole: Sprite
 
 	private arrow: Sprite
+
+	private backgroundStars: Array<Rect> = new Array();
+	private backgroundStarAlphaDirections: Array<boolean> = new Array();
 
 	// Labels for the gui
 	private planetsLabel: Label;
@@ -89,7 +90,7 @@ export default class Base_Scene extends Scene {
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 
 		// Load in the background image
-		this.load.image("space", "hw2_assets/sprites/space.png");
+		//this.load.image("space", "hw2_assets/sprites/space.png");
 	}
 
 	unloadScene(): void {
@@ -122,13 +123,31 @@ export default class Base_Scene extends Scene {
         reset.borderColor = Color.WHITE;
         reset.backgroundColor = Color.TRANSPARENT;
         reset.onClickEventId = GameEvents.RESET_TRAJECTORY;
+
+		this.addLayer("background", 0);
+		for(let i = 0; i < 100; i++) {
+			let x = Math.random() * this.viewport.getHalfSize().x * 2;
+			let y = Math.random() * this.viewport.getHalfSize().x * 2;
+			let size = (Math.random() + 1) * 5;
+
+			let rect = this.add.graphic("RECT", "background",
+										{position: new Vec2(x, y), size: new Vec2(size, size)});
+			rect.position.set(x, y);
+			rect.size.set(size, size);
+			rect.color.set(255, 255, 255, Math.random());
+			this.backgroundStars.push(rect as Rect);
+			this.backgroundStarAlphaDirections.push(Math.random() < 0.5);
+		}
+
+		/*
 		// Create a background layer
 		this.addLayer("background", 0);
-
 		// Add in the background image
 		let bg = this.add.sprite("space", "background");
 		bg.scale.set(2, 2);
 		bg.position.copy(this.viewport.getCenter());
+		*/
+
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
@@ -154,6 +173,30 @@ export default class Base_Scene extends Scene {
 	 * updateScene() is where the real work is done. This is where any custom behavior goes.
 	 */
 	updateScene(deltaT: number){
+		for(let i = 0; i < this.backgroundStars.length; i++) {
+			let star = this.backgroundStars[i];
+
+			let twinkleSpeed = 0.01;
+			if(star.color.a < 0.3)
+				twinkleSpeed = 0.005;
+			if(star.color.a < 0.1)
+				twinkleSpeed = 0.001;
+
+			if(this.backgroundStarAlphaDirections[i]) {
+				star.color.a += twinkleSpeed;
+				if(star.color.a >= 1) {
+					star.color.a = 1;
+					this.backgroundStarAlphaDirections[i] = false;
+				}
+			} else {
+				star.color.a -= twinkleSpeed;
+				if(star.color.a <= 0) {
+					star.color.a = 0;
+					this.backgroundStarAlphaDirections[i] = true;
+				}
+			}
+		}
+
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
 
 		// Handle events we care about
@@ -407,6 +450,15 @@ export default class Base_Scene extends Scene {
 	}
 
 	render(): void {
+		/*
+		for(let i = 0; i < this.backgroundStars.length; i++) {
+			let star: AABB = this.backgroundStars[i];
+			(this.renderingManager as CanvasRenderer).ctx 
+			Debug.drawBox(star.center, star.halfSize, true,
+						  new Color(255, 255, 255, this.backgroundStarAlphas[i]));
+		}
+		*/
+
         // Get the visible set of nodes
         let visibleSet = this.sceneGraph.getVisibleSet();
 
