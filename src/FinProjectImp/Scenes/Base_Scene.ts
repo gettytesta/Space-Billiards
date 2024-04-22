@@ -42,6 +42,8 @@ export default class Base_Scene extends Scene {
 	// TESTA - I'm not exactly sure if this should be stored here. It will represent what level we're on.
 	private levelNumber = 1;
 
+	private paused = false;
+
 	// TESTA - This will be our array for all asteroids in the scene.
 	private asteroids: Array<Sprite> = new Array();
 
@@ -53,16 +55,8 @@ export default class Base_Scene extends Scene {
 
 	private arrow: Sprite
 
-
 	private backgroundStars: Array<Rect> = new Array();
 	private backgroundStarAlphaDirections: Array<boolean> = new Array();
-
-	// Labels for the gui
-	private planetsLabel: Label;
-
-	// Timers
-	private gameEndTimer: number = 0;
-	private GAME_END_MAX_TIME: number = 3;
 
 	// Other variables
 	private WORLD_PADDING: Vec2 = new Vec2(64, 64);
@@ -78,6 +72,7 @@ export default class Base_Scene extends Scene {
 	private backgroundLayer: Layer;
 	private cutscene1Layer: Layer;
 	private cutscene2Layer: Layer;
+	private pauseLayer: Layer;
 
 
 	initScene(init: Record<string, any>): void {
@@ -128,30 +123,11 @@ export default class Base_Scene extends Scene {
 		// Gleb - Defining the UI Layer that will be used for actually firing the ship
 		const center = this.viewport.getCenter();
 
-        // The main menu
-        this.uiComponents = this.addUILayer("fireButton");
-		const fire = this.add.uiElement(UIElementType.BUTTON, "fireButton", {position: new Vec2(center.x, center.y - 100), text: "Fire!"});
-        fire.size.set(200, 50);
-		fire.position = new Vec2(1080,750)
-        fire.borderWidth = 2;
-        fire.borderColor = Color.WHITE;
-        fire.backgroundColor = Color.TRANSPARENT;
-        fire.onClickEventId = GameEvents.FIRE_BALL;
-
-		this.uiComponents = this.addUILayer("resetButton");
-		const reset = this.add.uiElement(UIElementType.BUTTON, "resetButton", {position: new Vec2(center.x, center.y - 100), text: "Reset Trajectory"});
-        reset.size.set(200, 50);
-		reset.position = new Vec2(1080,650)
-        reset.borderWidth = 2;
-        reset.borderColor = Color.WHITE;
-        reset.backgroundColor = Color.TRANSPARENT;
-        reset.onClickEventId = GameEvents.RESET_TRAJECTORY;
-
-		this.addLayer("background", 0);
+		this.backgroundLayer = this.addLayer("background", 0);
 		for(let i = 0; i < 100; i++) {
 			let x = Math.random() * this.viewport.getHalfSize().x * 2;
 			let y = Math.random() * this.viewport.getHalfSize().x * 2;
-			let size = (Math.random() + 1) * 5;
+			let size = (Math.random() + 1) * 3;
 
 			let rect = this.add.graphic("RECT", "background",
 										{position: new Vec2(x, y), size: new Vec2(size, size)});
@@ -196,6 +172,8 @@ export default class Base_Scene extends Scene {
 		this.receiver.subscribe(GameEvents.MENU)
 		this.receiver.subscribe(GameEvents.TRY_AGAIN)
 		this.receiver.subscribe(GameEvents.NEXT_LEVEL)
+		this.receiver.subscribe(GameEvents.PAUSE)
+		this.receiver.subscribe(GameEvents.UNPAUSE)
 
 
 		// If we've selected the Tutorial Level
@@ -208,10 +186,14 @@ export default class Base_Scene extends Scene {
 		}
 	}
 
-	/*
-	 * updateScene() is where the real work is done. This is where any custom behavior goes.
-	 */
 	updateScene(deltaT: number){
+		this.handleEvents();
+		if (this.paused) {
+			return
+		}
+
+		this.handleCutscene(deltaT);
+
 		for(let i = 0; i < this.backgroundStars.length; i++) {
 			let star = this.backgroundStars[i];
 
@@ -223,8 +205,8 @@ export default class Base_Scene extends Scene {
 
 			if(this.backgroundStarAlphaDirections[i]) {
 				star.color.a += twinkleSpeed;
-				if(star.color.a >= 1) {
-					star.color.a = 1;
+				if(star.color.a >= 0.6) {
+					star.color.a = 0.6;
 					this.backgroundStarAlphaDirections[i] = false;
 				}
 			} else {
@@ -236,12 +218,7 @@ export default class Base_Scene extends Scene {
 			}
 		}
 
-		this.handleCutscene(deltaT);
-
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
-
-		// Handle events we care about
-		this.handleEvents();
 
 		this.handleCollisions();
 
@@ -428,6 +405,33 @@ export default class Base_Scene extends Scene {
 
 
 		/**
+		 * PAUSE SCREEN
+		 */
+		this.pauseLayer = this.addUILayer("pause")
+		this.pauseLayer.setHidden(true)
+
+		const pauseText = <Label>this.add.uiElement(UIElementType.LABEL, "pause", {position: new Vec2(center.x, center.y-100), text: "Paused"});
+        pauseText.textColor = Color.WHITE;
+
+		// Unpause
+		const unpause = this.add.uiElement(UIElementType.BUTTON, "pause", {position: new Vec2(center.x-200, center.y+100), text: "Unpause"});
+		unpause.size.set(230, 50);
+		unpause.borderWidth = 2;
+		unpause.borderColor = Color.WHITE;
+		unpause.backgroundColor = Color.BLACK;
+		unpause.onClickEventId = GameEvents.UNPAUSE;
+
+		// Return to Menu
+		retMenu = this.add.uiElement(UIElementType.BUTTON, "pause", {position: new Vec2(center.x+200, center.y+100), text: "Return to Menu"});
+		retMenu.size.set(230, 50);
+		retMenu.borderWidth = 2;
+		retMenu.borderColor = Color.WHITE;
+		retMenu.backgroundColor = Color.BLACK;
+		retMenu.onClickEventId = GameEvents.MENU;
+
+
+
+		/**
 		 * TUTORIAL CUTSCENE
 		 */
 		this.cutscene1Layer = this.addLayer("cutscene1Layer", 3)
@@ -564,6 +568,14 @@ export default class Base_Scene extends Scene {
 				this.gameLayer.setHidden(false)
 				this.uiLayer.setHidden(false)
 				this.tryAgain.setHidden(true)
+			} else if (event.type === GameEvents.PAUSE) {
+				this.pauseLayer.setHidden(false)
+				this.paused = true;
+				(<CuePlayerController>this.player._ai).paused = true;
+			} else if (event.type === GameEvents.UNPAUSE) {
+				this.pauseLayer.setHidden(true)
+				this.paused = false;
+				(<CuePlayerController>this.player._ai).paused = false;
 			}
 		}
 	}
