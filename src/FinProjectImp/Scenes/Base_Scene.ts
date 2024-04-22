@@ -17,6 +17,7 @@ import Levels from "./Levels";
 import Level, { Asteroid, WormholePair } from "./LevelType";
 import Debug from "../../Wolfie2D/Debug/Debug";
 import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
+import Rect from "../../Wolfie2D/Nodes/Graphics/Rect";
 import MainMenu from "./Main_Menu";
 import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
 
@@ -46,13 +47,22 @@ export default class Base_Scene extends Scene {
 
 	// TESTA - IDK if we'll even do 2 planet gameplay so this might be unused
 	private planets: Array<AnimatedSprite> = new Array(2);
-
 	private wormholes: Array<Sprite> = new Array();
 	private wormholePairs: Array<WormholePair> = new Array();
-
 	private black_hole: Sprite
 
 	private arrow: Sprite
+
+
+	private backgroundStars: Array<Rect> = new Array();
+	private backgroundStarAlphaDirections: Array<boolean> = new Array();
+
+	// Labels for the gui
+	private planetsLabel: Label;
+
+	// Timers
+	private gameEndTimer: number = 0;
+	private GAME_END_MAX_TIME: number = 3;
 
 	// Other variables
 	private WORLD_PADDING: Vec2 = new Vec2(64, 64);
@@ -92,7 +102,8 @@ export default class Base_Scene extends Scene {
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 
 		// Load in the background image
-		this.load.image("space", "hw2_assets/sprites/space.png");
+
+		//this.load.image("space", "hw2_assets/sprites/space.png");
 
 		// Load in the sfx
 		this.load.audio("fire", "hw2_assets/sfx/fire.wav")
@@ -112,14 +123,53 @@ export default class Base_Scene extends Scene {
 	 * startScene() allows us to add in the assets we loaded in loadScene() as game objects.
 	 * Everything here happens strictly before update
 	 */
-	startScene() {
-		// Create a background layer
-		this.backgroundLayer = this.addLayer("background", 0);
 
+	startScene(){
+		// Gleb - Defining the UI Layer that will be used for actually firing the ship
+		const center = this.viewport.getCenter();
+
+        // The main menu
+        this.uiComponents = this.addUILayer("fireButton");
+		const fire = this.add.uiElement(UIElementType.BUTTON, "fireButton", {position: new Vec2(center.x, center.y - 100), text: "Fire!"});
+        fire.size.set(200, 50);
+		fire.position = new Vec2(1080,750)
+        fire.borderWidth = 2;
+        fire.borderColor = Color.WHITE;
+        fire.backgroundColor = Color.TRANSPARENT;
+        fire.onClickEventId = GameEvents.FIRE_BALL;
+
+		this.uiComponents = this.addUILayer("resetButton");
+		const reset = this.add.uiElement(UIElementType.BUTTON, "resetButton", {position: new Vec2(center.x, center.y - 100), text: "Reset Trajectory"});
+        reset.size.set(200, 50);
+		reset.position = new Vec2(1080,650)
+        reset.borderWidth = 2;
+        reset.borderColor = Color.WHITE;
+        reset.backgroundColor = Color.TRANSPARENT;
+        reset.onClickEventId = GameEvents.RESET_TRAJECTORY;
+
+		this.addLayer("background", 0);
+		for(let i = 0; i < 100; i++) {
+			let x = Math.random() * this.viewport.getHalfSize().x * 2;
+			let y = Math.random() * this.viewport.getHalfSize().x * 2;
+			let size = (Math.random() + 1) * 5;
+
+			let rect = this.add.graphic("RECT", "background",
+										{position: new Vec2(x, y), size: new Vec2(size, size)});
+			rect.position.set(x, y);
+			rect.size.set(size, size);
+			rect.color.set(255, 255, 255, Math.random());
+			this.backgroundStars.push(rect as Rect);
+			this.backgroundStarAlphaDirections.push(Math.random() < 0.5);
+		}
+
+		/*
+		// Create a background layer
+		this.addLayer("background", 0);
 		// Add in the background image
 		let bg = this.add.sprite("space", "background");
 		bg.scale.set(2, 2);
 		bg.position.copy(this.viewport.getCenter());
+		*/
 
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
@@ -161,7 +211,31 @@ export default class Base_Scene extends Scene {
 	/*
 	 * updateScene() is where the real work is done. This is where any custom behavior goes.
 	 */
-	updateScene(deltaT: number) {
+	updateScene(deltaT: number){
+		for(let i = 0; i < this.backgroundStars.length; i++) {
+			let star = this.backgroundStars[i];
+
+			let twinkleSpeed = 0.01;
+			if(star.color.a < 0.3)
+				twinkleSpeed = 0.005;
+			if(star.color.a < 0.1)
+				twinkleSpeed = 0.001;
+
+			if(this.backgroundStarAlphaDirections[i]) {
+				star.color.a += twinkleSpeed;
+				if(star.color.a >= 1) {
+					star.color.a = 1;
+					this.backgroundStarAlphaDirections[i] = false;
+				}
+			} else {
+				star.color.a -= twinkleSpeed;
+				if(star.color.a <= 0) {
+					star.color.a = 0;
+					this.backgroundStarAlphaDirections[i] = true;
+				}
+			}
+		}
+
 		this.handleCutscene(deltaT);
 
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
@@ -586,6 +660,15 @@ export default class Base_Scene extends Scene {
 	}
 
 	render(): void {
+		/*
+		for(let i = 0; i < this.backgroundStars.length; i++) {
+			let star: AABB = this.backgroundStars[i];
+			(this.renderingManager as CanvasRenderer).ctx 
+			Debug.drawBox(star.center, star.halfSize, true,
+						  new Color(255, 255, 255, this.backgroundStarAlphas[i]));
+		}
+		*/
+
         // Get the visible set of nodes
         let visibleSet = this.sceneGraph.getVisibleSet();
 
