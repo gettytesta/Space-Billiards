@@ -6,20 +6,16 @@ import GameEvent from "../../Wolfie2D/Events/GameEvent";
 import Receiver from "../../Wolfie2D/Events/Receiver";
 import Input from "../../Wolfie2D/Input/Input";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
+import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
 import MathUtils from "../../Wolfie2D/Utils/MathUtils";
 import { GameEvents } from "../GameEnums";
 
-export default class CuePlayerController implements AI{
+
+export default class CuePlayerController implements AI {
 	// We want to be able to control our owner, so keep track of them
 	private owner: AnimatedSprite;
 
-	// The direction the spaceship is moving
-	private direction: Vec2;
-	private MIN_SPEED: number = 0;
-	private MAX_SPEED: number = 300;
-	private speed: number;
-	private ACCELERATION: number = 4;
-	private rotationSpeed: number;
+	private directionArrow: Sprite; 
 
 	// TESTA - hitPlanet is for any collision that would make the cue(s) explode
 	private hitPlanet: boolean = false;
@@ -29,11 +25,14 @@ export default class CuePlayerController implements AI{
 	private receiver: Receiver;
 	private emitter: Emitter;
 
-	//Gleb Changes - we need to have a way of measuring the Vector between the mouse start dragging, and end dragging
+	// Gleb Changes - we need to have a way of measuring the Vector between the mouse start dragging, and end dragging
 	private mouseDragging: boolean = false; 
-	private mouseStart: Vec2;
-	private mouseEnd: Vec2;
+	private mouseStart: Vec2 =  new Vec2(0,0);
+	private mouseEnd: Vec2 =  new Vec2(0,0);
 	public assignedVelocity: Vec2 = new Vec2(0,0)
+	private trajectorySet: boolean = false; 
+	// If the fire button was pressed
+	private didFire: boolean = false;
 
 	// HOMEWORK 2 - TODO
 	/**
@@ -48,12 +47,12 @@ export default class CuePlayerController implements AI{
 	 * @param options The list of options for ai initialization
 	 */
 	initializeAI(owner: AnimatedSprite, options: Record<string, any>): void {
-		this.owner = owner;
+		this.owner = options.owner;
 
-		// Start facing up
-		this.direction = new Vec2(0, 1);
-		this.speed = 0;
-		this.rotationSpeed = 2;
+		// Set up of directional arrow to show where its aiming
+		this.directionArrow = options.arrow
+		this.directionArrow.position = this.owner.position
+		this.directionArrow.visible = false;
 
 		this.receiver = new Receiver();
 		this.emitter = new Emitter();
@@ -68,8 +67,24 @@ export default class CuePlayerController implements AI{
 	handleEvent(event: GameEvent): void {
 		// We need to handle animations when we get hurt
 		if(event.type === GameEvents.PLANET_HIT_BLACKHOLE){
-			this.owner.animation.play("explode", true);
 			this.hitBlackHole = true;
+		}
+		if(event.type === GameEvents.FIRE_BALL)
+		{
+			if (this.trajectorySet) {
+				this.didFire = true;
+				this.directionArrow.visible = false
+			}
+		}
+		if(event.type === GameEvents.RESET_TRAJECTORY)
+		{
+			this.trajectorySet = false; 
+			this.directionArrow.visible = false;
+			this.mouseDragging = false;
+		}
+		if(event.type === GameEvents.PLAY_GAME){
+			this.mouseDragging = false; 
+			this.trajectorySet = false;
 		}
 	}
 
@@ -81,52 +96,94 @@ export default class CuePlayerController implements AI{
 			this.handleEvent(this.receiver.getNextEvent());
 		}
 
-		// We need to handle player input
-		// GLEB - Dragging Demo
-		if(Input.isMousePressed()){
-			console.log("Mouse is Clicked")
-			if(!this.mouseDragging)
-			{
-				this.mouseDragging=true
-				this.mouseStart = Input.getMousePressPosition()
-				console.log(this.mouseStart)
-			}	
-		}
-		else
-		{
-			if(this.mouseDragging)
-			{
-				this.mouseDragging= false	
-				this.mouseEnd = Input.getMousePosition()
-				console.log(this.mouseEnd)
-				this.assignedVelocity = this.mouseStart.add(this.mouseEnd.mult(new Vec2(-1, -1)))
-				
+		if (Input.isMousePressed() && !this.didFire) {
+			if (!this.mouseDragging) {
+				this.mouseDragging = true
+				this.mouseStart = Input.getGlobalMousePosition()
+			} else {
+				this.mouseEnd = Input.getGlobalMousePosition()
+				let distX
+				let distY
+				let angle
+				var maxDist = 150
+				if (this.mouseStart.x < this.mouseEnd.x) {
+					// We're on the right quadrants
+					distX = this.mouseEnd.x - this.mouseStart.x
+					distX = MathUtils.clamp(distX, 0, maxDist)
+	
+					if (this.mouseStart.y > this.mouseEnd.y) {
+						// Top right quadrant
+						distY = this.mouseStart.y - this.mouseEnd.y
+						distY = MathUtils.clamp(distY, 0, maxDist)
+						angle = Math.atan2(distY, distX)
+	
+						this.assignedVelocity = new Vec2(distX, -distY)
+						// Set mouse position
+						this.directionArrow.position = new Vec2(this.owner.position.x+distX, this.owner.position.y-distY)
+					} else {
+						// Bottom right quadrant
+						distY = this.mouseEnd.y - this.mouseStart.y
+						distY = MathUtils.clamp(distY, 0, maxDist)
+						angle = Math.atan2(distY, distX)
+						angle = ((Math.PI/2) - angle) + 3*Math.PI/2
+	
+						this.assignedVelocity = new Vec2(distX, distY)
+						// Set mouse position
+						this.directionArrow.position = new Vec2(this.owner.position.x+distX, this.owner.position.y+distY)
+					}
+				} else {
+					// We're on the left quadrants
+					distX = this.mouseStart.x - this.mouseEnd.x
+					distX = MathUtils.clamp(distX, 0, maxDist)
+	
+					if (this.mouseStart.y > this.mouseEnd.y) {
+						// Top left quadrant
+						distY = this.mouseStart.y - this.mouseEnd.y
+						distY = MathUtils.clamp(distY, 0, maxDist)
+						angle = Math.atan2(distY, distX)
+
+						angle = ((Math.PI/2) - angle) + Math.PI/2
+	
+						this.assignedVelocity = new Vec2(-distX, -distY)
+						// Set mouse position
+						this.directionArrow.position = new Vec2(this.owner.position.x-distX, this.owner.position.y-distY)
+					} else {
+						// Bottom left quadrant
+						distY = this.mouseEnd.y - this.mouseStart.y
+						distY = MathUtils.clamp(distY, 0, maxDist)
+						angle = Math.atan2(distY, distX)
+
+						angle += Math.PI
+	
+						this.assignedVelocity = new Vec2(-distX, distY)
+						// Set mouse position
+						this.directionArrow.position = new Vec2(this.owner.position.x-distX, this.owner.position.y+distY)
+					}
+				}
+				this.directionArrow.rotation = angle - Math.PI/2;
+				if (distX > 50 || distY > 50) {
+					this.trajectorySet = true;
+				}
+				this.assignedVelocity.scale(1.6);
 			}
+		} else if (this.mouseDragging) {
+			this.mouseDragging = false
+			this.directionArrow.visible = true
 		}
-		this.owner.move(this.assignedVelocity.scaled(deltaT))
-		
-		let forwardAxis = (Input.isPressed('forward') ? 1 : 0) + (Input.isPressed('backward') ? -1 : 0);
-		let turnDirection = (Input.isPressed('turn_ccw') ? -1 : 0) + (Input.isPressed('turn_cw') ? 1 : 0);
-
-		// Space controls - speed stays the same if nothing happens
-		// Forward to speed up, backward to slow down
-		this.speed += this.ACCELERATION * forwardAxis;
-		this.speed = MathUtils.clamp(this.speed, this.MIN_SPEED, this.MAX_SPEED);
-
-		// Rotate the player
-		this.direction.rotateCCW(turnDirection * this.rotationSpeed * deltaT);
-
-		// Update the visual direction of the player
-		this.owner.rotation = -(Math.atan2(this.direction.y, this.direction.x) - Math.PI/2);
-		
-		// Move the player
-		//this.owner.position.add(this.direction.scaled(-this.speed * deltaT));
-
+		if (this.didFire) {
+			this.directionArrow.visible = false;
+			this.owner.position.add(this.assignedVelocity.scaled(deltaT))
+			this.owner.collisionShape.center = this.owner.position
+		}
 		Debug.log("player_pos", "Player Position: " + this.owner.position.toString());
 
 		// Animations
 		if(!this.owner.animation.isPlaying("explode")){
 			this.owner.animation.playIfNotAlready("idle");
 		}
+	}
+
+	destroy(): void {
+		
 	}
 } 

@@ -52,6 +52,8 @@ export default class Base_Scene extends Scene {
 
 	private black_hole: Sprite
 
+	private arrow: Sprite
+
 	// Labels for the gui
 	private planetsLabel: Label;
 
@@ -79,14 +81,19 @@ export default class Base_Scene extends Scene {
 
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
-		this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
-		this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
-		this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
-		this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
-		this.load.image("black hole", "hw2_assets/sprites/Black Hole TEMP.png")
+		// this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
+		// this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
+		// this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
+		// this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
+		this.load.image("black_hole", "hw2_assets/sprites/Black Hole TEMP.png")
+		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 
 		// Load in the background image
 		this.load.image("space", "hw2_assets/sprites/space.png");
+	}
+
+	unloadScene(): void {
+		this.resourceManager.unloadAllResources();
 	}
 
 	/*
@@ -106,6 +113,15 @@ export default class Base_Scene extends Scene {
         fire.borderColor = Color.WHITE;
         fire.backgroundColor = Color.TRANSPARENT;
         fire.onClickEventId = GameEvents.FIRE_BALL;
+
+		this.uiComponents = this.addUILayer("resetButton");
+		const reset = this.add.uiElement(UIElementType.BUTTON, "resetButton", {position: new Vec2(center.x, center.y - 100), text: "Reset Trajectory"});
+        reset.size.set(200, 50);
+		reset.position = new Vec2(1080,650)
+        reset.borderWidth = 2;
+        reset.borderColor = Color.WHITE;
+        reset.backgroundColor = Color.TRANSPARENT;
+        reset.onClickEventId = GameEvents.RESET_TRAJECTORY;
 		// Create a background layer
 		this.addLayer("background", 0);
 
@@ -160,7 +176,7 @@ export default class Base_Scene extends Scene {
 			deltaV.normalize();
 			deltaV.scale((asteroid.mass - distance + 20) * 3);
 
-			(this.player.ai as CuePlayerController).assignedVelocity.add(deltaV.scaled(deltaT))
+			(<CuePlayerController>this.player.ai).assignedVelocity.add(deltaV.scaled(deltaT))
 		}
 
 		// Get the viewport center and padded size
@@ -176,19 +192,27 @@ export default class Base_Scene extends Scene {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
 		this.player = this.add.animatedSprite("player", "primary");
-		this.player.addPhysics();
+		this.player.addPhysics()
 		this.player.position = level.cue_pos;
+		this.player._velocity = Vec2.ZERO
 		this.player.animation.play("idle");
-		let playerCollider = new Circle(Vec2.ZERO, 32);
-		this.player.setCollisionShape(playerCollider);
-		this.player.addAI(CuePlayerController, {owner: this.player});
+		this.player.setCollisionShape(new Circle(Vec2.ZERO, 32))
+
+		// Adding a new layer just for the arrow
+		this.addLayer("arrow", 6);
+		this.arrow = this.add.sprite("arrow", "arrow")
+		this.arrow.isCollidable = false;
+		this.arrow.visible = false
+
+
+		this.player.addAI(CuePlayerController, {owner: this.player, arrow: this.arrow});
 
 		for (let asteroid of level.asteroids) {
 			let currAsteroid = this.add.sprite("asteroid", "primary")
-			currAsteroid.scale = new Vec2(2, 2)
+			currAsteroid.scale.set(2, 2)
 			currAsteroid.position = asteroid.position
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 30));
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 20));
 			this.asteroids.push(currAsteroid)
 		}
 
@@ -199,8 +223,7 @@ export default class Base_Scene extends Scene {
 			colorIndex++
 			for (let i of [0, 1]) {
 				let currWormhole = this.add.sprite("wormhole_" + color, "primary")
-				let wScale = .3
-				currWormhole.scale = new Vec2(wScale, wScale);
+				currWormhole.scale.set(.3,.3)
 				currWormhole.position = wormholePair.positions[i]
 				currWormhole.setCollisionShape(new Circle(Vec2.ZERO, 50));
 				// TODO(cheryl): is this a reference or a copy?
@@ -210,11 +233,11 @@ export default class Base_Scene extends Scene {
 			this.wormholePairs.push(wormholePair)
 		}
 
-		this.black_hole = this.add.sprite("black hole", "primary")
+		this.black_hole = this.add.sprite("black_hole", "primary")
 		this.black_hole.setCollisionShape(new Circle(Vec2.ZERO, 50))
 		this.black_hole.position = level.black_hole_pos
 		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
-		this.black_hole.scale = new Vec2(3, 3)
+		this.black_hole.scale.set(3,3)
 	}
 
 	/**
@@ -287,10 +310,10 @@ export default class Base_Scene extends Scene {
 	handleTimers(deltaT: number): void {
 		if (this.playerDead) {
 			this.gameEndTimer += deltaT;
-			this.sceneManager.changeScene(GameOver, {});
+			this.sceneManager.changeToScene(GameOver, {});
 		} else if (this.playerClearStage) {
 			this.gameEndTimer += deltaT;
-			this.sceneManager.changeScene(ClearStage, {});
+			this.sceneManager.changeToScene(ClearStage, {});
 		}
 	}
 
@@ -306,6 +329,7 @@ export default class Base_Scene extends Scene {
 			}
 		}
 
+		// Check for collision with wormholes
 		let touchedWormhole = false
 		for (let wormhole of this.wormholes) {
 			if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>wormhole.collisionShape)) {
@@ -408,6 +432,4 @@ export default class Base_Scene extends Scene {
         this.tilemaps.forEach(tilemap => tilemap.visible ? nodes.push(tilemap) : 0);
         Debug.setNodes(nodes);
     }
-
-
 }

@@ -22,9 +22,13 @@ export default class GameOver extends Scene {
         text.textColor = Color.WHITE;
     }
 
+    unloadScene(): void {
+        this.resourceManager.unloadAllResources()
+    }
+
     updateScene(){
         if(Input.isMouseJustPressed()){
-            this.sceneManager.changeScene(MainMenu);
+            this.sceneManager.changeToScene(MainMenu);
         }
     }
 }

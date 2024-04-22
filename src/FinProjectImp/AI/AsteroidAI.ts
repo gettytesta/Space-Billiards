@@ -32,4 +32,8 @@ export default class AsteroidAI implements AI {
         if(this.owner.visible)
             this.owner.position.add(this.direction.scaled(AsteroidAI.SPEED * deltaT));
     }
+
+    destroy(): void {
+		
+	}
 }

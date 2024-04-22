@@ -6,8 +6,8 @@ import Color from "../../Wolfie2D/Utils/Color";
 import { GameEvents } from "../GameEnums";
 import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 import Base_Scene from "./Base_Scene";
-import Level_Select from "./Level_Select";
 import Sprite from "../../Wolfie2D/Nodes/Sprites/Sprite";
+import Level_Select from "./Level_Select";
 
 export default class MainMenu extends Scene {
     // Layers, for multiple main menu screens
@@ -22,6 +22,10 @@ export default class MainMenu extends Scene {
 		this.load.image("logo", "hw2_assets/sprites/logo.png")
 		this.load.image("drag_diagram", "hw2_assets/sprites/drag_diagram.png")
 	}
+
+    unloadScene(): void {
+        this.resourceManager.unloadAllResources()
+    }
 
     startScene(){
 		this.addLayer("primary", 5);
@@ -79,9 +83,9 @@ export default class MainMenu extends Scene {
         const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x + 200, center.y - 250), text: "Controls"});
         header.textColor = Color.WHITE;
 
-        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 50), text: "Hold Left Click and Drag to Aim"});
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x+200, center.y - 50), text: "Hold Left Click and Drag to Aim"});
         ws.textColor = Color.WHITE;
-        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y), text: "Click the 'Fire!' button to fire"});
+        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x+200, center.y), text: "Click the 'Fire!' button to fire"});
         ad.textColor = Color.WHITE;
         const back = this.add.uiElement(UIElementType.BUTTON, "controls", {position: new Vec2(center.x + 200, center.y + 250), text: "Back"});
 
@@ -135,7 +139,7 @@ export default class MainMenu extends Scene {
             console.log(event);
 
             if(event.type === GameEvents.LEVEL_SELECT){
-                this.sceneManager.changeScene(Level_Select, {});
+                this.sceneManager.changeToScene(Level_Select, {});
             }
 
             if(event.type === GameEvents.CONTROLS){

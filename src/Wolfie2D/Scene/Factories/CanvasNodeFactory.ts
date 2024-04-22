@@ -13,6 +13,8 @@ import Slider from "../../Nodes/UIElements/Slider";
 import TextInput from "../../Nodes/UIElements/TextInput";
 import Rect from "../../Nodes/Graphics/Rect";
 import ResourceManager from "../../ResourceManager/ResourceManager";
+import Line from "../../Nodes/Graphics/Line";
+import Particle from "../../Nodes/Graphics/Particle";
 
 // @ignorePage
 
@@ -135,10 +137,16 @@ export default class CanvasNodeFactory {
 		switch(type){
 			case GraphicType.POINT:
 				instance = this.buildPoint(options);
-			break;
+				break;
+			case GraphicType.LINE:
+				instance = this.buildLine(options);
+				break;
 			case GraphicType.RECT:
 				instance = this.buildRect(options);
-			break;
+				break;
+			case GraphicType.PARTICLE:
+				instance = this.buildParticle(options);
+				break;				
 			default:
 				throw `GraphicType '${type}' does not exist, or is registered incorrectly.`
 		}
@@ -176,7 +184,12 @@ export default class CanvasNodeFactory {
 	buildSlider(options: Record<string, any>): Slider {
 		this.checkIfPropExists("Slider", options, "position", Vec2, "Vec2");
 
-		return new Slider(options.position);
+		let initValue = 0;
+		if(options.value !== undefined){
+			initValue = options.value;
+		}
+
+		return new Slider(options.position, initValue);
 	}
 
 	buildTextInput(options: Record<string, any>): TextInput {
@@ -189,6 +202,22 @@ export default class CanvasNodeFactory {
 		this.checkIfPropExists("Point", options, "position", Vec2, "Vec2");
 
 		return new Point(options.position);
+	}
+
+	buildParticle(options?: Record<string, any>): Point {
+		this.checkIfPropExists("Particle", options, "position", Vec2, "Vec2");
+		this.checkIfPropExists("Particle", options, "size", Vec2, "Vec2");
+		this.checkIfPropExists("Particle", options, "mass", "number", "number");
+
+		//Changed for testing
+		return new Particle(options.position, options.size, options.mass);
+	}
+
+	buildLine(options?: Record<string, any>): Point {
+		this.checkIfPropExists("Line", options, "start", Vec2, "Vec2");
+		this.checkIfPropExists("Line", options, "end", Vec2, "Vec2");
+
+		return new Line(options.start, options.end);
 	}
 
 	buildRect(options?: Record<string, any>): Rect {
