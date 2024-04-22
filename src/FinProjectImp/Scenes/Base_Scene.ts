@@ -58,11 +58,16 @@ export default class Base_Scene extends Scene {
 	private backgroundStars: Array<Rect> = new Array();
 	private backgroundStarAlphaDirections: Array<boolean> = new Array();
 
+	private cs1: Sprite;
+	private cs2: Sprite;
+
 	// Other variables
 	private WORLD_PADDING: Vec2 = new Vec2(64, 64);
 
 	// Timer for the tutorial cutscene
 	private cutsceneTimer = 0;
+	private cutsceneFade1: Rect;
+	private cutsceneFade2: Rect;
 
 	// Each layer used for the game
 	private nextLevel: Layer;
@@ -437,14 +442,27 @@ export default class Base_Scene extends Scene {
 		this.cutscene1Layer = this.addLayer("cutscene1Layer", 3)
 		this.cutscene1Layer.setHidden(true)
 
-		const cs1 = this.add.sprite("cutscene1", "cutscene1Layer")
-		cs1.position = this.viewport.getCenter()
+		this.cs1 = this.add.sprite("cutscene1", "cutscene1Layer")
+		this.cs1.position = this.viewport.getCenter()
 
 		this.cutscene2Layer = this.addLayer("cutscene2Layer", 3)
 		this.cutscene2Layer.setHidden(true)
 
-		const cs2 = this.add.sprite("cutscene2", "cutscene2Layer")
-		cs2.position = this.viewport.getCenter()
+		this.cs2 = this.add.sprite("cutscene2", "cutscene2Layer")
+		this.cs2.position = this.viewport.getCenter()
+
+		let viewportSize = new Vec2(this.viewport.getHalfSize().x * 2,
+									this.viewport.getHalfSize().y * 2);
+		this.cutsceneFade1 = this.add.graphic("RECT", "cutscene1Layer",
+										{position: this.viewport.getCenter(),
+										 size: viewportSize}) as Rect;
+		this.cutsceneFade2 = this.add.graphic("RECT", "cutscene2Layer",
+										{position: this.viewport.getCenter(),
+										 size: viewportSize}) as Rect;
+
+		let c = new Color(0, 0, 0, 1)
+		this.cutsceneFade1.color = c;
+		this.cutsceneFade2.color = c;
 	}
 
 	resetLevel(levelNumber: number): void {
@@ -507,14 +525,39 @@ export default class Base_Scene extends Scene {
 		if (this.levelNumber !== 0 || this.cutsceneTimer > 16) {
 			return
 		}
+		let interval = 8;
+		let fadeTime = 1;
 
 		this.cutsceneTimer += deltaT
-		if (this.cutsceneTimer > 16) {
+
+		this.cutsceneFade1.color.a = 0;
+		this.cutsceneFade2.color.a = 0;
+
+		if(this.cutsceneTimer <= interval) {
+			if(this.cutsceneTimer > interval - fadeTime) {
+				let amountThrough = ((this.cutsceneTimer - (interval-fadeTime)) / fadeTime);
+				if(amountThrough < 0) amountThrough = 0;
+				if(amountThrough > 1) amountThrough = 1;
+
+				this.cutsceneFade1.color.a = amountThrough;
+			}
+		}
+		else if(this.cutsceneTimer <= interval*2) {
+			if(this.cutsceneTimer > interval*2 - fadeTime) {
+				let amountThrough = ((this.cutsceneTimer - (interval*2-fadeTime)) / fadeTime);
+				if(amountThrough < 0) amountThrough = 0;
+				if(amountThrough > 1) amountThrough = 1;
+
+				this.cutsceneFade2.color.a = amountThrough;
+			}
+		}
+
+		if (this.cutsceneTimer > interval*2) {
 			this.cutscene2Layer.setHidden(true)
 			this.gameLayer.setHidden(false)
 			this.uiLayer.setHidden(false)
 			this.backgroundLayer.setHidden(false)
-		} else if (this.cutsceneTimer > 8) {
+		} else if (this.cutsceneTimer > interval) {
 			this.cutscene1Layer.setHidden(true)
 			this.cutscene2Layer.setHidden(false)
 		}
