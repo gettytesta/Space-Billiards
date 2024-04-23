@@ -55,7 +55,7 @@ export default class CuePlayerController implements AI {
 		// Set up of directional arrow to show where its aiming
 		this.directionArrow = options.arrow
 		this.directionArrow.position = this.owner.position
-		this.directionArrow.visible = false;
+		this.directionArrow.visible = true;
 
 		this.receiver = new Receiver();
 		this.emitter = new Emitter();
@@ -101,11 +101,9 @@ export default class CuePlayerController implements AI {
 	}
 
 	update(deltaT: number): void {
-		if (this.paused) {
+		if (this.paused || this.hitPlanet) {
 			return
 		}
-		
-		if(this.hitPlanet) return;
 		
 		while(this.receiver.hasNextEvent()){
 			this.handleEvent(this.receiver.getNextEvent());

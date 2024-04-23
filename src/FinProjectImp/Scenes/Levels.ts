@@ -1,6 +1,6 @@
 import Vec2 from "../../Wolfie2D/DataTypes/Vec2";
 import Viewport from "../../Wolfie2D/SceneGraph/Viewport";
-import Level, { Asteroid, WormholePair } from "./LevelType";
+import Level, { Asteroid, WormholePair, Star } from "./LevelType";
 
 // bhp - Position of the black hole
 // cp - Position of the cue
@@ -35,14 +35,14 @@ export default class Levels {
 	static getTutorialLevel(viewport:Viewport) : Level {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var cp = new Vec2(viewport.getCenter().x+350, viewport.getCenter().y)
-		return new Level(bhp, new Array(), new Array(), cp);
+		return new Level(bhp, new Array(), new Array(), new Array(), cp);
 	}
 
 	// No obstacles
 	static getLevel1(viewport:Viewport) : Level {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var cp = new Vec2(viewport.getCenter().x+350, viewport.getCenter().y)
-		return new Level(bhp, new Array(), new Array(), cp);
+		return new Level(bhp, new Array(), new Array(), new Array(), cp);
 	}
 
 	// One asteroid, curve around it
@@ -50,45 +50,46 @@ export default class Levels {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var asteroids : Array<Asteroid> = [new Asteroid(viewport.getCenter().clone(), 150)]
 		var cp = new Vec2(viewport.getCenter().x+350, viewport.getCenter().y)
-		return new Level(bhp, asteroids, new Array(), cp);
+		return new Level(bhp, asteroids, new Array(), new Array(), cp);
+	}
+
+	// One asteroid, one star
+	static getLevel3(viewport:Viewport) : Level {
+		var bhp = new Vec2(150, viewport.getCenter().y-180)
+		var asteroids : Array<Asteroid> = [new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y), 150)]
+		var stars : Array<Star> = [new Star(new Vec2(viewport.getCenter().x, viewport.getCenter().y-150))]
+		// var wormholePairs : Array<WormholePair> = [new WormholePair(new Vec2(600, 700), new Vec2(600, 200))]
+		var cp = new Vec2(viewport.getCenter().x+400, viewport.getCenter().y)
+		return new Level(bhp, asteroids, stars, new Array(), cp);
 	}
 
 	// Two asteroids, gravity cancels
-	static getLevel3(viewport:Viewport) : Level {
+	static getLevel4(viewport:Viewport) : Level {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var asteroids : Array<Asteroid> = [new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y-80), 150),
 											new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y+80), 150)]
 		var cp = new Vec2(viewport.getCenter().x+400, viewport.getCenter().y)
-		return new Level(bhp, asteroids, new Array(), cp);
-	}
-
-
-	static getLevel4(viewport:Viewport) : Level {
-		var bhp = new Vec2(150, viewport.getCenter().y)
-		var asteroids : Array<Asteroid> = [new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y), 150)]
-		// var wormholePairs : Array<WormholePair> = [new WormholePair(new Vec2(600, 700), new Vec2(600, 200))]
-		var cp = new Vec2(viewport.getCenter().x+400, viewport.getCenter().y)
-		return new Level(bhp, asteroids, new Array(), cp);
+		return new Level(bhp, asteroids, new Array(), new Array(), cp);
 	}
 
 	static getLevel5(viewport:Viewport) : Level {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var asteroids : Array<Asteroid> = [new Asteroid(viewport.getCenter().clone(), 150)]
 		var cp = new Vec2(viewport.getCenter().x+350, viewport.getCenter().y)
-		return new Level(bhp, asteroids, new Array(), cp);
+		return new Level(bhp, asteroids, new Array(), new Array(), cp);
 	}
 
 	static getLevel6(viewport:Viewport) : Level {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var asteroids : Array<Asteroid> = [new Asteroid(viewport.getCenter().clone(), 150)]
 		var cp = new Vec2(viewport.getCenter().x+350, viewport.getCenter().y)
-		return new Level(bhp, asteroids, new Array(), cp);
+		return new Level(bhp, asteroids, new Array(), new Array(), cp);
 	}
 
 	static getLevel7(viewport:Viewport) : Level {
 		var bhp = new Vec2(150, viewport.getCenter().y)
 		var asteroids : Array<Asteroid> = [new Asteroid(viewport.getCenter().clone(), 150)]
 		var cp = new Vec2(viewport.getCenter().x+350, viewport.getCenter().y)
-		return new Level(bhp, asteroids, new Array(), cp);
+		return new Level(bhp, asteroids, new Array(), new Array(), cp);
 	}
 }
