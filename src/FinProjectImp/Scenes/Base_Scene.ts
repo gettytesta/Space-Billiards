@@ -90,14 +90,14 @@ export default class Base_Scene extends Scene {
 	 */
 	loadScene(){
 		// Load in the planet spritesheet
-		this.load.spritesheet("player", "hw2_assets/spritesheets/player_planet.json");
+		this.load.spritesheet("star", "hw2_assets/spritesheets/star.json");
+		this.load.spritesheet("asteroid", "hw2_assets/spritesheets/asteroid.json");
+		this.load.spritesheet("wormhole", "hw2_assets/spritesheets/wormhole.json")
+
 		this.load.spritesheet("green_orange_planet_player", "hw2_assets/spritesheets/green_orange_planet.json")
 		this.load.spritesheet("blue_teal_planet_player", "hw2_assets/spritesheets/blue_teal_planet.json")
 		this.load.spritesheet("pink_yellow_planet_player", "hw2_assets/spritesheets/pink_yellow_planet.json")
 
-		// Load in the sprites
-		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
-		this.load.spritesheet("wormhole", "hw2_assets/sprites/wormhole.json")
 		this.load.image("black_hole", "hw2_assets/sprites/black_hole.png")
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 
@@ -105,6 +105,7 @@ export default class Base_Scene extends Scene {
 		this.load.audio("fire", "hw2_assets/sfx/fire.wav")
 		this.load.audio("planet_explode", "hw2_assets/sfx/planet_explode.wav")
 		this.load.audio("oob", "hw2_assets/sfx/oob.wav")
+		this.load.audio("music", "hw2_assets/music/intro.mp3")
 
 		// Load in the cutscene images for the tutorial
 		this.load.image("cutscene1", "hw2_assets/cutscene/Space Billiards CS1.png")
@@ -177,6 +178,8 @@ export default class Base_Scene extends Scene {
 
 			this.cutscene1Layer.setHidden(false)
 		}
+
+		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 	}
 
 	updateScene(deltaT: number){
@@ -519,7 +522,7 @@ export default class Base_Scene extends Scene {
 				currStar.setCollisionShape(new Circle(Vec2.ZERO, 32));
 				this.stars.push(currStar)
 			}
-		} else if (level.asteroids.length < this.asteroids.length) {
+		} else if (level.stars.length < this.stars.length) {
 			// Remove sprites from list
 			// Bad way of doing this but I'm lazy
 			while (this.stars.length > level.stars.length) {
@@ -621,6 +624,7 @@ export default class Base_Scene extends Scene {
 				this.gameLayer.setHidden(true)
 				this.uiLayer.setHidden(true)
 			} else if (event.type === GameEvents.MENU) {
+				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
 				this.sceneManager.changeToScene(MainMenu)
 			} else if (event.type === GameEvents.NEXT_LEVEL) {
 				this.levelNumber += 1
