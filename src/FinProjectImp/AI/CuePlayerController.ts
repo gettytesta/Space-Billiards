@@ -55,7 +55,7 @@ export default class CuePlayerController implements AI {
 		// Set up of directional arrow to show where its aiming
 		this.directionArrow = options.arrow
 		this.directionArrow.position = this.owner.position
-		this.directionArrow.visible = false;
+		this.directionArrow.visible = true;
 
 		this.receiver = new Receiver();
 		this.emitter = new Emitter();
@@ -90,6 +90,7 @@ export default class CuePlayerController implements AI {
 					// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "fire", loop: false, holdReference: false});
 					this.didFire = true;
 					this.directionArrow.visible = false
+					this.owner.animation.play("spinning")
 				}
 			}
 		}
@@ -100,11 +101,9 @@ export default class CuePlayerController implements AI {
 	}
 
 	update(deltaT: number): void {
-		if (this.paused) {
+		if (this.paused || this.hitPlanet) {
 			return
 		}
-		
-		if(this.hitPlanet) return;
 		
 		while(this.receiver.hasNextEvent()){
 			this.handleEvent(this.receiver.getNextEvent());
@@ -192,9 +191,7 @@ export default class CuePlayerController implements AI {
 		Debug.log("player_pos", "Player Position: " + this.owner.position.toString());
 
 		// Animations
-		if(!this.owner.animation.isPlaying("explode")){
-			this.owner.animation.playIfNotAlready("idle");
-		}
+
 	}
 
 	destroy(): void {

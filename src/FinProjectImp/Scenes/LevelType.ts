@@ -5,14 +5,16 @@ export default class Level {
 	public black_hole_pos: Vec2;
 
 	public asteroids: Array<Asteroid>;
+	public stars: Array<Star>;
 	public wormholePairs: Array<WormholePair>;
 
 	// TESTA - Not implementing 2 cues yet
 	public cue_pos: Vec2;
 
-    constructor(bhp: Vec2, a: Array<Asteroid>, w: Array<WormholePair>, cp: Vec2) {
+    constructor(bhp: Vec2, a: Array<Asteroid>, s: Array<Star>, w: Array<WormholePair>, cp: Vec2) {
 		this.black_hole_pos = bhp
 		this.asteroids = a
+		this.stars = s
 		this.wormholePairs = w
 		this.cue_pos = cp
     }
@@ -26,6 +28,14 @@ export class Asteroid {
 	constructor(p: Vec2, m: number) {
 		this.position = p;
 		this.mass = m
+	}
+}
+
+export class Star {
+	public position: Vec2;
+
+	constructor(p:Vec2) {
+		this.position = p
 	}
 }
 
