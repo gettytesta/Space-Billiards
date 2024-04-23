@@ -91,8 +91,9 @@ export default class Base_Scene extends Scene {
 	loadScene(){
 		// Load in the planet spritesheet
 		this.load.spritesheet("player", "hw2_assets/spritesheets/player_planet.json");
-		this.load.spritesheet("asteroid", "hw2_assets/spritesheets/asteroid.json")
-		this.load.spritesheet("star", "hw2_assets/spritesheets/star.json")
+		this.load.spritesheet("green_orange_planet_player", "hw2_assets/spritesheets/green_orange_planet.json")
+		this.load.spritesheet("blue_teal_planet_player", "hw2_assets/spritesheets/blue_teal_planet.json")
+		this.load.spritesheet("pink_yellow_planet_player", "hw2_assets/spritesheets/pink_yellow_planet.json")
 
 		// Load in the sprites
 		// this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
@@ -255,7 +256,7 @@ export default class Base_Scene extends Scene {
 	initializeObjects(levelNumber: number): void {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
-		this.player = this.add.animatedSprite("player", "primary");
+		this.player = this.add.animatedSprite("green_orange_planet_player", "primary");
 		this.player.addPhysics()
 		this.player.position = level.cue_pos;
 		this.player._velocity = Vec2.ZERO

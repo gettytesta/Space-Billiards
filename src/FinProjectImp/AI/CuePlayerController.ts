@@ -90,6 +90,7 @@ export default class CuePlayerController implements AI {
 					// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "fire", loop: false, holdReference: false});
 					this.didFire = true;
 					this.directionArrow.visible = false
+					this.owner.animation.play("spinning")
 				}
 			}
 		}
@@ -190,9 +191,7 @@ export default class CuePlayerController implements AI {
 		Debug.log("player_pos", "Player Position: " + this.owner.position.toString());
 
 		// Animations
-		if(!this.owner.animation.isPlaying("explode")){
-			this.owner.animation.playIfNotAlready("idle");
-		}
+
 	}
 
 	destroy(): void {

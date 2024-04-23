@@ -34,5 +34,6 @@ export enum GameEvents {
 export enum GameAnimations {
 	// TESTA - These will be changed later on
 	CUE_IDLE = "idle",
-	CUE_COLLISION = "explode",
+	CUE_SPINNING = "spinning",
+	CUE_SELECTED = "selected"
 }
