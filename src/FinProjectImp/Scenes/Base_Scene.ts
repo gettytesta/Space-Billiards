@@ -1,4 +1,3 @@
-import AABB from "../../Wolfie2D/DataTypes/Shapes/AABB";
 import Vec2 from "../../Wolfie2D/DataTypes/Vec2";
 import GameNode from "../../Wolfie2D/Nodes/GameNode";
 import AnimatedSprite from "../../Wolfie2D/Nodes/Sprites/AnimatedSprite";
@@ -6,7 +5,6 @@ import Label from "../../Wolfie2D/Nodes/UIElements/Label";
 import { UIElementType } from "../../Wolfie2D/Nodes/UIElements/UIElementTypes";
 import Scene from "../../Wolfie2D/Scene/Scene";
 import Color from "../../Wolfie2D/Utils/Color";
-import RandUtils from "../../Wolfie2D/Utils/RandUtils";
 import AsteroidAI from "../AI/AsteroidAI";
 import { GameEvents } from "../GameEnums";
 import CuePlayerController from "../AI/CuePlayerController";
@@ -45,7 +43,9 @@ export default class Base_Scene extends Scene {
 	private paused = false;
 
 	// TESTA - This will be our array for all asteroids in the scene.
-	private asteroids: Array<Sprite> = new Array();
+	private asteroids: Array<AnimatedSprite> = new Array();
+
+	private stars: Array<AnimatedSprite> = new Array();
 
 	// TESTA - IDK if we'll even do 2 planet gameplay so this might be unused
 	private planets: Array<AnimatedSprite> = new Array(2);
@@ -91,19 +91,16 @@ export default class Base_Scene extends Scene {
 	loadScene(){
 		// Load in the planet spritesheet
 		this.load.spritesheet("player", "hw2_assets/spritesheets/player_planet.json");
+		this.load.spritesheet("asteroid", "hw2_assets/spritesheets/asteroid.json")
+		this.load.spritesheet("star", "hw2_assets/spritesheets/star.json")
 
 		// Load in the sprites
-		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
 		// this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
 		// this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
 		// this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
 		// this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
 		this.load.image("black_hole", "hw2_assets/sprites/Black Hole TEMP.png")
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
-
-		// Load in the background image
-
-		//this.load.image("space", "hw2_assets/sprites/space.png");
 
 		// Load in the sfx
 		this.load.audio("fire", "hw2_assets/sfx/fire.wav")
@@ -143,15 +140,7 @@ export default class Base_Scene extends Scene {
 			this.backgroundStarAlphaDirections.push(Math.random() < 0.5);
 		}
 
-		/*
-		// Create a background layer
-		this.addLayer("background", 0);
-		// Add in the background image
-		let bg = this.add.sprite("space", "background");
-		bg.scale.set(2, 2);
-		bg.position.copy(this.viewport.getCenter());
-		*/
-
+		
 		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
 		this.gameLayer = this.addLayer("primary", 5);
@@ -283,12 +272,21 @@ export default class Base_Scene extends Scene {
 		this.player.addAI(CuePlayerController, {owner: this.player, arrow: this.arrow});
 
 		for (let asteroid of level.asteroids) {
-			let currAsteroid = this.add.sprite("asteroid", "primary")
-			currAsteroid.scale.set(2, 2)
+			let currAsteroid = this.add.animatedSprite("asteroid", "primary")
+			currAsteroid.animation.play("idle")
 			currAsteroid.position = asteroid.position
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 20));
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32));
 			this.asteroids.push(currAsteroid)
+		}
+
+		for (let star of level.stars) {
+			let currStar = this.add.animatedSprite("star", "primary")
+			currStar.animation.play("idle")
+			currStar.position = star.position
+			currStar.scale.set(1.4, 1.4)
+			currStar.setCollisionShape(new Circle(Vec2.ZERO, 32));
+			this.stars.push(currStar)
 		}
 
 		let colorIndex = 0
@@ -487,14 +485,14 @@ export default class Base_Scene extends Scene {
 		(<CuePlayerController>this.player._ai).resetAI(this.player)
 		this.player.animation.play("idle");
 
-
+		// Reset Asteroids
 		if (level.asteroids.length > this.asteroids.length) {
 			// Add more asteroids to this.asteroids
 			while (this.asteroids.length < level.asteroids.length) {
-				let currAsteroid = this.add.sprite("asteroid", "primary")
-				currAsteroid.scale.set(2, 2)
+				let currAsteroid = this.add.animatedSprite("asteroid", "primary")
+				currAsteroid.animation.play("idle")
 				currAsteroid.addAI(AsteroidAI)
-				currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 20));
+				currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32));
 				this.asteroids.push(currAsteroid)
 			}
 		} else if (level.asteroids.length < this.asteroids.length) {
@@ -507,6 +505,29 @@ export default class Base_Scene extends Scene {
 		var i = 0;
 		for (let asteroid of level.asteroids) {
 			this.asteroids[i].position = asteroid.position
+			i++;
+		}
+
+		// Reset Stars
+		if (level.stars.length > this.stars.length) {
+			// Add more stars to this.stars
+			while (this.stars.length < level.stars.length) {
+				let currStar = this.add.animatedSprite("star", "primary")
+				currStar.animation.play("idle")
+				currStar.scale.set(1.4, 1.4)
+				currStar.setCollisionShape(new Circle(Vec2.ZERO, 32));
+				this.stars.push(currStar)
+			}
+		} else if (level.asteroids.length < this.asteroids.length) {
+			// Remove sprites from list
+			// Bad way of doing this but I'm lazy
+			while (this.stars.length > level.stars.length) {
+				this.remove(this.stars.pop())
+			}
+		}
+		var i = 0;
+		for (let star of level.stars) {
+			this.stars[i].position = star.position
 			i++;
 		}
 
@@ -631,6 +652,13 @@ export default class Base_Scene extends Scene {
 		// Check for collision with asteroid(s)
 		for (let asteroid of this.asteroids) {
 			if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>asteroid.collisionShape)) {
+				this.emitter.fireEvent(GameEvents.PLANET_COLLISION, {id: this.player.id})
+				this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "planet_explode", loop: false, holdReference: false});
+			}
+		}
+		// Check for collision with star(s)
+		for (let star of this.stars) {
+			if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>star.collisionShape)) {
 				this.emitter.fireEvent(GameEvents.PLANET_COLLISION, {id: this.player.id})
 				this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "planet_explode", loop: false, holdReference: false});
 			}
