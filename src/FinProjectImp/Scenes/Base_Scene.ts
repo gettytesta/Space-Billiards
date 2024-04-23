@@ -49,7 +49,7 @@ export default class Base_Scene extends Scene {
 
 	// TESTA - IDK if we'll even do 2 planet gameplay so this might be unused
 	private planets: Array<AnimatedSprite> = new Array(2);
-	private wormholes: Array<Sprite> = new Array();
+	private wormholes: Array<AnimatedSprite> = new Array();
 	private wormholePairs: Array<WormholePair> = new Array();
 	private black_hole: Sprite
 
@@ -90,26 +90,22 @@ export default class Base_Scene extends Scene {
 	 */
 	loadScene(){
 		// Load in the planet spritesheet
-		this.load.spritesheet("player", "hw2_assets/spritesheets/player_planet.json");
 		this.load.spritesheet("star", "hw2_assets/spritesheets/star.json");
 		this.load.spritesheet("asteroid", "hw2_assets/spritesheets/asteroid.json");
+		this.load.spritesheet("wormhole", "hw2_assets/spritesheets/wormhole.json")
 
 		this.load.spritesheet("green_orange_planet_player", "hw2_assets/spritesheets/green_orange_planet.json")
 		this.load.spritesheet("blue_teal_planet_player", "hw2_assets/spritesheets/blue_teal_planet.json")
 		this.load.spritesheet("pink_yellow_planet_player", "hw2_assets/spritesheets/pink_yellow_planet.json")
 
-		// Load in the sprites
-		// this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
-		// this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
-		// this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
-		// this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
-		this.load.image("black_hole", "hw2_assets/sprites/Black Hole TEMP.png")
+		this.load.image("black_hole", "hw2_assets/sprites/black_hole.png")
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 
 		// Load in the sfx
 		this.load.audio("fire", "hw2_assets/sfx/fire.wav")
 		this.load.audio("planet_explode", "hw2_assets/sfx/planet_explode.wav")
 		this.load.audio("oob", "hw2_assets/sfx/oob.wav")
+		this.load.audio("music", "hw2_assets/music/intro.mp3")
 
 		// Load in the cutscene images for the tutorial
 		this.load.image("cutscene1", "hw2_assets/cutscene/Space Billiards CS1.png")
@@ -182,6 +178,8 @@ export default class Base_Scene extends Scene {
 
 			this.cutscene1Layer.setHidden(false)
 		}
+
+		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 	}
 
 	updateScene(deltaT: number){
@@ -299,8 +297,10 @@ export default class Base_Scene extends Scene {
 			let color = colors[colorIndex % (colors.length+1)]
 			colorIndex++
 			for (let i of [0, 1]) {
-				let currWormhole = this.add.sprite("wormhole_" + color, "primary")
-				currWormhole.scale.set(.3,.3)
+				let currWormhole = this.add.animatedSprite("wormhole", "primary")
+				currWormhole.animation.play("idle");
+				let scale = 1.3
+				currWormhole.scale.set(scale, scale)
 				currWormhole.position = wormholePair.positions[i]
 				currWormhole.setCollisionShape(new Circle(Vec2.ZERO, 50));
 				// TODO(cheryl): is this a reference or a copy?
@@ -314,7 +314,7 @@ export default class Base_Scene extends Scene {
 		this.black_hole.setCollisionShape(new Circle(Vec2.ZERO, 50))
 		this.black_hole.position = level.black_hole_pos
 		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
-		this.black_hole.scale.set(3,3)
+		this.black_hole.scale.set(1, 1)
 	}
 
 	/**
@@ -624,6 +624,7 @@ export default class Base_Scene extends Scene {
 				this.gameLayer.setHidden(true)
 				this.uiLayer.setHidden(true)
 			} else if (event.type === GameEvents.MENU) {
+				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
 				this.sceneManager.changeToScene(MainMenu)
 			} else if (event.type === GameEvents.NEXT_LEVEL) {
 				this.levelNumber += 1
