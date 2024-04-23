@@ -49,7 +49,7 @@ export default class Base_Scene extends Scene {
 
 	// TESTA - IDK if we'll even do 2 planet gameplay so this might be unused
 	private planets: Array<AnimatedSprite> = new Array(2);
-	private wormholes: Array<Sprite> = new Array();
+	private wormholes: Array<AnimatedSprite> = new Array();
 	private wormholePairs: Array<WormholePair> = new Array();
 	private black_hole: Sprite
 
@@ -94,11 +94,12 @@ export default class Base_Scene extends Scene {
 
 		// Load in the sprites
 		this.load.image("asteroid", "hw2_assets/sprites/Asteroid TEMP.png")
-		// this.load.image("wormhole_white", "hw2_assets/sprites/wormhole_white.png")
+		this.load.spritesheet("wormhole", "hw2_assets/sprites/wormhole.json")
 		// this.load.image("wormhole_red", "hw2_assets/sprites/wormhole_red.png")
 		// this.load.image("wormhole_blue", "hw2_assets/sprites/wormhole_blue.png")
 		// this.load.image("wormhole_green", "hw2_assets/sprites/wormhole_green.png")
-		this.load.image("black_hole", "hw2_assets/sprites/Black Hole TEMP.png")
+		//this.load.image("black_hole", "hw2_assets/sprites/Black Hole TEMP.png")
+		this.load.image("black_hole", "hw2_assets/sprites/black_hole.png")
 		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
 
 		// Load in the background image
@@ -297,8 +298,10 @@ export default class Base_Scene extends Scene {
 			let color = colors[colorIndex % (colors.length+1)]
 			colorIndex++
 			for (let i of [0, 1]) {
-				let currWormhole = this.add.sprite("wormhole_" + color, "primary")
-				currWormhole.scale.set(.3,.3)
+				let currWormhole = this.add.animatedSprite("wormhole", "primary")
+				currWormhole.animation.play("idle");
+				let scale = 1.3
+				currWormhole.scale.set(scale, scale)
 				currWormhole.position = wormholePair.positions[i]
 				currWormhole.setCollisionShape(new Circle(Vec2.ZERO, 50));
 				// TODO(cheryl): is this a reference or a copy?
@@ -312,7 +315,7 @@ export default class Base_Scene extends Scene {
 		this.black_hole.setCollisionShape(new Circle(Vec2.ZERO, 50))
 		this.black_hole.position = level.black_hole_pos
 		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
-		this.black_hole.scale.set(3,3)
+		this.black_hole.scale.set(1, 1)
 	}
 
 	/**
