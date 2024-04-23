@@ -776,7 +776,7 @@ export default class Base_Scene extends Scene {
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
 		if (!this.playerClearStage && !this.playerDead) {
 			for (let asteroid of level.asteroids) {
-				Debug.drawCircle(asteroid.position, asteroid.mass, false, Color.WHITE);
+				Debug.drawCircle(asteroid.position, asteroid.mass/1.35, false, Color.WHITE);
 			}
 		}
 
