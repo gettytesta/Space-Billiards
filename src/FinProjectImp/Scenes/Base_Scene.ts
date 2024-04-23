@@ -91,6 +91,9 @@ export default class Base_Scene extends Scene {
 	loadScene(){
 		// Load in the planet spritesheet
 		this.load.spritesheet("player", "hw2_assets/spritesheets/player_planet.json");
+		this.load.spritesheet("star", "hw2_assets/spritesheets/star.json");
+		this.load.spritesheet("asteroid", "hw2_assets/spritesheets/asteroid.json");
+
 		this.load.spritesheet("green_orange_planet_player", "hw2_assets/spritesheets/green_orange_planet.json")
 		this.load.spritesheet("blue_teal_planet_player", "hw2_assets/spritesheets/blue_teal_planet.json")
 		this.load.spritesheet("pink_yellow_planet_player", "hw2_assets/spritesheets/pink_yellow_planet.json")
