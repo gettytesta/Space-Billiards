@@ -518,7 +518,7 @@ export default class Base_Scene extends Scene {
 				currStar.setCollisionShape(new Circle(Vec2.ZERO, 32));
 				this.stars.push(currStar)
 			}
-		} else if (level.asteroids.length < this.asteroids.length) {
+		} else if (level.stars.length < this.stars.length) {
 			// Remove sprites from list
 			// Bad way of doing this but I'm lazy
 			while (this.stars.length > level.stars.length) {
