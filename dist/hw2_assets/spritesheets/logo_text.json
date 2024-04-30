@@ -1,14 +1,14 @@
 {
-	"name": "star",
-	"spriteSheetImage": "star.png",
-	"spriteWidth": 64,
-	"spriteHeight": 64,
+	"name": "logo_text",
+	"spriteSheetImage": "logo_text.png",
+	"spriteWidth": 128,
+	"spriteHeight": 128,
 	"leftBuffer": 0,
 	"rightBuffer": 0,
 	"topBuffer": 0,
 	"bottomBuffer": 0,
-	"columns": 7,
-	"rows": 7,
+	"columns": 6,
+	"rows": 6,
 	"animations": [
 		{
 			"name": "idle",
@@ -16,7 +16,7 @@
 			"frames": [
 				{
 					"index": 0,
-					"duration": 4
+					"duration": 100
 				},
 				{
 					"index": 1,
@@ -156,58 +156,6 @@
 				},
 				{
 					"index": 35,
-					"duration": 4
-				},
-				{
-					"index": 36,
-					"duration": 4
-				},
-				{
-					"index": 37,
-					"duration": 4
-				},
-				{
-					"index": 38,
-					"duration": 4
-				},
-				{
-					"index": 39,
-					"duration": 4
-				},
-				{
-					"index": 40,
-					"duration": 4
-				},
-				{
-					"index": 41,
-					"duration": 4
-				},
-				{
-					"index": 42,
-					"duration": 4
-				},
-				{
-					"index": 43,
-					"duration": 4
-				},
-				{
-					"index": 44,
-					"duration": 4
-				},
-				{
-					"index": 45,
-					"duration": 4
-				},
-				{
-					"index": 46,
-					"duration": 4
-				},
-				{
-					"index": 47,
-					"duration": 4
-				},
-				{
-					"index": 48,
 					"duration": 4
 				}
 			]
