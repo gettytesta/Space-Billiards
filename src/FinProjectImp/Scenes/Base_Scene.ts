@@ -39,11 +39,14 @@ export default class Base_Scene extends Scene {
 
 	// TESTA - I'm not exactly sure if this should be stored here. It will represent what level we're on.
 	private levelNumber = 1;
+	private levelNumberLabel: Label;
 
 	private paused = false;
 
-	// TESTA - This will be our array for all asteroids in the scene.
+	private hardMode = false;
+
 	private asteroids: Array<AnimatedSprite> = new Array();
+	private asteroidWarps: Array<Sprite> = new Array();
 
 	private stars: Array<AnimatedSprite> = new Array();
 
@@ -51,7 +54,9 @@ export default class Base_Scene extends Scene {
 	private planets: Array<AnimatedSprite> = new Array(2);
 	private wormholes: Array<AnimatedSprite> = new Array();
 	private wormholePairs: Array<WormholePair> = new Array();
-	private black_hole: Sprite
+	private black_hole: AnimatedSprite;
+
+	private planetSprites = new Array();
 
 	private arrow: Sprite
 
@@ -66,8 +71,11 @@ export default class Base_Scene extends Scene {
 
 	// Timer for the tutorial cutscene
 	private cutsceneTimer = 0;
-	private cutsceneFade1: Rect;
-	private cutsceneFade2: Rect;
+	private cutsceneOver = false;
+	// Timer for printing the path dots
+	private pathdotTimer = .3;
+
+	private pathDots: Array<Rect> = new Array();
 
 	// Each layer used for the game
 	private nextLevel: Layer;
@@ -78,28 +86,37 @@ export default class Base_Scene extends Scene {
 	private cutscene1Layer: Layer;
 	private cutscene2Layer: Layer;
 	private pauseLayer: Layer;
+	private warpLayer: Layer;
+	private tutorialLayer: Layer;
+	private pathdotLayer: Layer;
 
 
-	initScene(init: Record<string, any>): void {
+	public initScene(init: Record<string, any>): void {
 		this.levelNumber = init.levelNum
+		this.hardMode = MainMenu.hardmodeSelected
 	}
 
 	/*
 	 * loadScene() overrides the parent class method. It allows us to load in custom assets for
 	 * use in our scene.
 	 */
-	loadScene(){
+	public loadScene(){
 		// Load in the planet spritesheet
 		this.load.spritesheet("star", "hw2_assets/spritesheets/star.json");
 		this.load.spritesheet("asteroid", "hw2_assets/spritesheets/asteroid.json");
 		this.load.spritesheet("wormhole", "hw2_assets/spritesheets/wormhole.json")
+		this.load.spritesheet("blackhole", "hw2_assets/spritesheets/blackhole.json")
 
-		this.load.spritesheet("green_orange_planet_player", "hw2_assets/spritesheets/green_orange_planet.json")
-		this.load.spritesheet("blue_teal_planet_player", "hw2_assets/spritesheets/blue_teal_planet.json")
-		this.load.spritesheet("pink_yellow_planet_player", "hw2_assets/spritesheets/pink_yellow_planet.json")
+		//this.load.spritesheet("planet1", "hw2_assets/spritesheets/planet1.json")
+		this.load.spritesheet("planet2", "hw2_assets/spritesheets/planet2.json")
+		//\\this.load.spritesheet("planet3", "hw2_assets/spritesheets/planet3.json")
+
+		//this.planetSprites = ["planet1", "planet2", "planet3"]
+		this.planetSprites = ["planet2"]
 
 		this.load.image("black_hole", "hw2_assets/sprites/black_hole.png")
-		this.load.image("arrow", "hw2_assets/sprites/Arrow.png")
+		this.load.image("arrow", "hw2_assets/sprites/arrow.png")
+		this.load.image("space_warp", "hw2_assets/sprites/space_warp.png")
 
 		// Load in the sfx
 		this.load.audio("fire", "hw2_assets/sfx/fire.wav")
@@ -112,7 +129,7 @@ export default class Base_Scene extends Scene {
 		this.load.image("cutscene2", "hw2_assets/cutscene/Space Billiards CS2.png")
 	}
 
-	unloadScene(): void {
+	public unloadScene(): void {
 		this.resourceManager.unloadAllResources();
 	}
 
@@ -133,15 +150,14 @@ export default class Base_Scene extends Scene {
 
 			let rect = this.add.graphic("RECT", "background",
 										{position: new Vec2(x, y), size: new Vec2(size, size)});
-			rect.position.set(x, y);
-			rect.size.set(size, size);
 			rect.color.set(255, 255, 255, Math.random());
 			this.backgroundStars.push(rect as Rect);
 			this.backgroundStarAlphaDirections.push(Math.random() < 0.5);
 		}
 
+		// Add layer for the path dots
+		this.pathdotLayer = this.addLayer("pathdot", 0);
 		
-		// Create a layer to serve as our main game - Feel free to use this for your own assets
 		// It is given a depth of 5 to be above our background
 		this.gameLayer = this.addLayer("primary", 5);
 
@@ -167,7 +183,6 @@ export default class Base_Scene extends Scene {
 		this.receiver.subscribe(GameEvents.TRY_AGAIN)
 		this.receiver.subscribe(GameEvents.NEXT_LEVEL)
 		this.receiver.subscribe(GameEvents.PAUSE)
-		this.receiver.subscribe(GameEvents.UNPAUSE)
 
 
 		// If we've selected the Tutorial Level
@@ -188,8 +203,22 @@ export default class Base_Scene extends Scene {
 			return
 		}
 
-		this.handleCutscene(deltaT);
+		// Handle cutscene images
+		if (!this.cutsceneOver)
+			this.handleCutscene(deltaT); 
 
+		// Draw pathdots if fired
+		if ((<CuePlayerController>this.player._ai).didFire) {
+			this.pathdotTimer += deltaT;
+			if (this.pathdotTimer >= .25) {
+				let pathdot = this.add.graphic("RECT", "pathdot", {position: this.player.position.clone(), size: new Vec2(5, 5)})
+				pathdot.color = MainMenu.hardmodeSelected ? Color.RED : Color.YELLOW
+				this.pathDots.push(pathdot as Rect)
+				this.pathdotTimer = 0;
+			}
+		}
+
+		// Update the background stars
 		for(let i = 0; i < this.backgroundStars.length; i++) {
 			let star = this.backgroundStars[i];
 
@@ -207,8 +236,8 @@ export default class Base_Scene extends Scene {
 				}
 			} else {
 				star.color.a -= twinkleSpeed;
-				if(star.color.a <= 0) {
-					star.color.a = 0;
+				if(star.color.a <= 0.2) {
+					star.color.a = 0.2;
 					this.backgroundStarAlphaDirections[i] = true;
 				}
 			}
@@ -230,6 +259,7 @@ export default class Base_Scene extends Scene {
 			this.emitter.fireEvent(GameEvents.LEVEL_PASS, {levelNum: this.levelNumber})
 		}
 
+		// Apply gravity towards the asteroid
 		for (let asteroid of level.asteroids) {
 			if(asteroid.position.distanceTo(this.player.position) > asteroid.mass)
 				continue;
@@ -240,8 +270,22 @@ export default class Base_Scene extends Scene {
 			let distance = deltaV.mag();
 
 			deltaV.normalize();
-			deltaV.scale((asteroid.mass - distance + 20) * 3);
+			deltaV.scale((asteroid.mass - distance + 20) * 4);
 
+			(<CuePlayerController>this.player.ai).assignedVelocity.add(deltaV.scaled(deltaT))
+		}
+
+		// Apply ***slight*** gravity towards the black hole
+		if(this.black_hole.position.distanceTo(this.player.position) < 100) {
+			let deltaV = new Vec2();
+			deltaV.copy(this.black_hole.position);
+			deltaV.sub(this.player.position);
+	
+			let distance = deltaV.mag();
+	
+			deltaV.normalize();
+			deltaV.scale((distance-20) * 4);
+	
 			(<CuePlayerController>this.player.ai).assignedVelocity.add(deltaV.scaled(deltaT))
 		}
 
@@ -257,7 +301,7 @@ export default class Base_Scene extends Scene {
 	initializeObjects(levelNumber: number): void {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
 
-		this.player = this.add.animatedSprite("green_orange_planet_player", "primary");
+		this.player = this.add.animatedSprite(this.planetSprites[Math.floor(Math.random() * this.planetSprites.length)], "primary");
 		this.player.addPhysics()
 		this.player.position = level.cue_pos;
 		this.player._velocity = Vec2.ZERO
@@ -285,17 +329,13 @@ export default class Base_Scene extends Scene {
 		for (let star of level.stars) {
 			let currStar = this.add.animatedSprite("star", "primary")
 			currStar.animation.play("idle")
+			currStar.scale.set(1.15, 1.15)
 			currStar.position = star.position
-			currStar.scale.set(1.4, 1.4)
 			currStar.setCollisionShape(new Circle(Vec2.ZERO, 32));
 			this.stars.push(currStar)
 		}
 
-		let colorIndex = 0
-		let colors = ["white", "red", "blue", "green"]
 		for (let wormholePair of level.wormholePairs) {
-			let color = colors[colorIndex % (colors.length+1)]
-			colorIndex++
 			for (let i of [0, 1]) {
 				let currWormhole = this.add.animatedSprite("wormhole", "primary")
 				currWormhole.animation.play("idle");
@@ -310,11 +350,11 @@ export default class Base_Scene extends Scene {
 			this.wormholePairs.push(wormholePair)
 		}
 
-		this.black_hole = this.add.sprite("black_hole", "primary")
-		this.black_hole.setCollisionShape(new Circle(Vec2.ZERO, 50))
+		this.black_hole = this.add.animatedSprite("blackhole", "primary")
+		this.black_hole.scale.set(1.5, 1.5)
+		this.black_hole.animation.play("idle")
+		this.black_hole.setCollisionShape(new Circle(Vec2.ZERO, 30))
 		this.black_hole.position = level.black_hole_pos
-		// TESTA - Bc the sprite I made was small, scale it here. We won't do this with the final sprite
-		this.black_hole.scale.set(1, 1)
 	}
 
 	/**
@@ -326,23 +366,34 @@ export default class Base_Scene extends Scene {
 
 		const center = this.viewport.getCenter();
 
+		// Level Number
+		this.levelNumberLabel = <Label>this.add.uiElement(UIElementType.LABEL, "gameUi", {position: new Vec2(30, 40), text: this.levelNumber > 0 ? "Level " + this.levelNumber : "Tutorial Level"});
+        this.levelNumberLabel.textColor = MainMenu.hardmodeSelected ? Color.RED : Color.YELLOW
+		this.levelNumberLabel.setHAlign("left");
+
 		// Fire Button
-		const fire = this.add.uiElement(UIElementType.BUTTON, "gameUi", {position: new Vec2(center.x, center.y - 100), text: "Fire!"});
+		const fire = this.add.uiElement(UIElementType.BUTTON, "gameUi", {position: new Vec2(1080,750), text: "Fire!"});
         fire.size.set(200, 50);
-		fire.position = new Vec2(1080,750)
         fire.borderWidth = 2;
         fire.borderColor = Color.ORANGE;
         fire.backgroundColor = Color.BLACK;
         fire.onClickEventId = GameEvents.FIRE_BALL;
 
-		// Pause Button - not functional yet
-		const pause = this.add.uiElement(UIElementType.BUTTON, "gameUi", {position: new Vec2(center.x, center.y - 100), text: "Pause"});
+		// Pause Button
+		const pause = this.add.uiElement(UIElementType.BUTTON, "gameUi", {position: new Vec2(125,750), text: "Pause"});
         pause.size.set(200, 50);
-		pause.position = new Vec2(125,750)
         pause.borderWidth = 2;
         pause.borderColor = Color.WHITE;
         pause.backgroundColor = Color.BLACK;
         pause.onClickEventId = GameEvents.PAUSE;
+
+		// Restart level
+		const retMenu = this.add.uiElement(UIElementType.BUTTON, "gameUi", {position: new Vec2(350, 750), text: "Restart Level"});
+		retMenu.size.set(200, 50);
+		retMenu.borderWidth = 2;
+		retMenu.borderColor = Color.WHITE;
+		retMenu.backgroundColor = Color.BLACK;
+		retMenu.onClickEventId = GameEvents.TRY_AGAIN;
 	}
 
 	/**
@@ -420,16 +471,8 @@ export default class Base_Scene extends Scene {
 		const pauseText = <Label>this.add.uiElement(UIElementType.LABEL, "pause", {position: new Vec2(center.x, center.y-100), text: "Paused"});
         pauseText.textColor = Color.WHITE;
 
-		// Unpause
-		const unpause = this.add.uiElement(UIElementType.BUTTON, "pause", {position: new Vec2(center.x-200, center.y+100), text: "Unpause"});
-		unpause.size.set(230, 50);
-		unpause.borderWidth = 2;
-		unpause.borderColor = Color.WHITE;
-		unpause.backgroundColor = Color.BLACK;
-		unpause.onClickEventId = GameEvents.UNPAUSE;
-
 		// Return to Menu
-		retMenu = this.add.uiElement(UIElementType.BUTTON, "pause", {position: new Vec2(center.x+200, center.y+100), text: "Return to Menu"});
+		retMenu = this.add.uiElement(UIElementType.BUTTON, "pause", {position: new Vec2(center.x, center.y+100), text: "Return to Menu"});
 		retMenu.size.set(230, 50);
 		retMenu.borderWidth = 2;
 		retMenu.borderColor = Color.WHITE;
@@ -446,29 +489,44 @@ export default class Base_Scene extends Scene {
 
 		this.cs1 = this.add.sprite("cutscene1", "cutscene1Layer")
 		this.cs1.position = this.viewport.getCenter()
+		this.cs1.scale.set(1.1,1.1)
+		this.cs1.alpha = 1
 
 		this.cutscene2Layer = this.addLayer("cutscene2Layer", 3)
 		this.cutscene2Layer.setHidden(true)
 
 		this.cs2 = this.add.sprite("cutscene2", "cutscene2Layer")
 		this.cs2.position = this.viewport.getCenter()
+		this.cs2.scale.set(1.1,1.1)
+		this.cs2.alpha = 0
 
-		let viewportSize = new Vec2(this.viewport.getHalfSize().x * 2,
-									this.viewport.getHalfSize().y * 2);
-		this.cutsceneFade1 = this.add.graphic("RECT", "cutscene1Layer",
-										{position: this.viewport.getCenter(),
-										 size: viewportSize}) as Rect;
-		this.cutsceneFade2 = this.add.graphic("RECT", "cutscene2Layer",
-										{position: this.viewport.getCenter(),
-										 size: viewportSize}) as Rect;
+		/**
+		 * TUTORIAL LAYER
+		 * The text/labels for the tutorial
+		 */
+		this.tutorialLayer = this.addUILayer("tutorial")
+		this.tutorialLayer.setHidden(true)
+			
+		const astText = <Label>this.add.uiElement(UIElementType.LABEL, "tutorial", {position: new Vec2(center.x-400, 310), text: "Asteroids emit gravity"});
+        astText.textColor = Color.WHITE;
 
-		let c = new Color(0, 0, 0, 1)
-		this.cutsceneFade1.color = c;
-		this.cutsceneFade2.color = c;
+		const starText = <Label>this.add.uiElement(UIElementType.LABEL, "tutorial", {position: new Vec2(center.x, 310), text: "Stars don't emit gravity"});
+        starText.textColor = Color.WHITE;
+
+		const wrmText = <Label>this.add.uiElement(UIElementType.LABEL, "tutorial", {position: new Vec2(center.x+370, 310), text: "Wormholes teleport you"});
+        wrmText.textColor = Color.WHITE;
+
+		const crapText = <Label>this.add.uiElement(UIElementType.LABEL, "tutorial", {position: new Vec2(center.x, center.y+250), text: "Drag the cursor to aim. Press fire to shoot!"});
+        crapText.textColor = Color.WHITE;
 	}
 
 	resetLevel(levelNumber: number): void {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
+
+		// Reset the pathdots
+		while (this.pathDots.length != 0) {
+			this.remove(this.pathDots.pop())
+		}
 
 		this.player.visible = true
 		this.player.position = level.cue_pos;
@@ -482,6 +540,12 @@ export default class Base_Scene extends Scene {
 
 	switchLevel(levelNumber: number): void {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
+		this.levelNumberLabel.text = "Level " + levelNumber
+
+		// Reset the pathdots
+		while (this.pathDots.length != 0) {
+			this.remove(this.pathDots.pop())
+		}
 
 		this.player.visible = true
 		this.player.position = level.cue_pos;
@@ -490,21 +554,18 @@ export default class Base_Scene extends Scene {
 		this.player.animation.play("idle");
 
 		// Reset Asteroids
-		if (level.asteroids.length > this.asteroids.length) {
-			// Add more asteroids to this.asteroids
-			while (this.asteroids.length < level.asteroids.length) {
-				let currAsteroid = this.add.animatedSprite("asteroid", "primary")
-				currAsteroid.animation.play("idle")
-				currAsteroid.addAI(AsteroidAI)
-				currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32));
-				this.asteroids.push(currAsteroid)
-			}
-		} else if (level.asteroids.length < this.asteroids.length) {
-			// Remove sprites from list
-			// Bad way of doing this but I'm lazy
-			while (this.asteroids.length > level.asteroids.length) {
-				this.remove(this.asteroids.pop())
-			}
+		// Add more asteroids to this.asteroids if needed
+		while (this.asteroids.length < level.asteroids.length) {
+			let currAsteroid = this.add.animatedSprite("asteroid", "primary")
+			currAsteroid.animation.play("idle")
+			currAsteroid.addAI(AsteroidAI)
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32));
+			this.asteroids.push(currAsteroid)
+		}
+		// Remove sprites from list if needed
+		// Bad way of doing this but I'm lazy
+		while (this.asteroids.length > level.asteroids.length) {
+			this.remove(this.asteroids.pop())
 		}
 		var i = 0;
 		for (let asteroid of level.asteroids) {
@@ -512,22 +573,18 @@ export default class Base_Scene extends Scene {
 			i++;
 		}
 
-		// Reset Stars
-		if (level.stars.length > this.stars.length) {
-			// Add more stars to this.stars
-			while (this.stars.length < level.stars.length) {
-				let currStar = this.add.animatedSprite("star", "primary")
-				currStar.animation.play("idle")
-				currStar.scale.set(1.4, 1.4)
-				currStar.setCollisionShape(new Circle(Vec2.ZERO, 32));
-				this.stars.push(currStar)
-			}
-		} else if (level.stars.length < this.stars.length) {
-			// Remove sprites from list
-			// Bad way of doing this but I'm lazy
-			while (this.stars.length > level.stars.length) {
-				this.remove(this.stars.pop())
-			}
+		// Add more stars to this.stars if needed
+		while (this.stars.length < level.stars.length) {
+			let currStar = this.add.animatedSprite("star", "primary")
+			currStar.animation.play("idle")
+			currStar.scale.set(1.15, 1.15)
+			currStar.setCollisionShape(new Circle(Vec2.ZERO, 32));
+			this.stars.push(currStar)
+		}
+		// Remove sprites from list if needed
+		// Bad way of doing this but I'm lazy
+		while (this.stars.length > level.stars.length) {
+			this.remove(this.stars.pop())
 		}
 		var i = 0;
 		for (let star of level.stars) {
@@ -535,54 +592,53 @@ export default class Base_Scene extends Scene {
 			i++;
 		}
 
+		// Reset the wormhole and wormhole pairs
+		while (this.wormholes.length != 0) {
+			this.remove(this.wormholes.pop())
+		}
+		this.wormholePairs = []
+		for (let wormholePair of level.wormholePairs) {
+			for (let i of [0, 1]) {
+				let currWormhole = this.add.animatedSprite("wormhole", "primary")
+				currWormhole.animation.play("idle");
+				currWormhole.scale.set(1.3, 1.3)
+				currWormhole.position = wormholePair.positions[i]
+				currWormhole.setCollisionShape(new Circle(Vec2.ZERO, 50));
+				wormholePair.spriteIDs[i] = currWormhole.id
+				this.wormholes.push(currWormhole)
+			}
+			this.wormholePairs.push(wormholePair)
+		}
 
-		// TODO - Need to do wormhole stuff here
-
-
+		// Reset the black hole pos
 		this.black_hole.position = level.black_hole_pos
 
+		// Turn off the tutorial layer
+		this.tutorialLayer.setHidden(true)
 
 		this.playerDead = false;
 		this.playerClearStage = false;
 	}
 
 	handleCutscene(deltaT: number): void {
-		if (this.levelNumber !== 0 || this.cutsceneTimer > 16) {
+		if (this.levelNumber == 0 && this.cutsceneTimer > 16) {
+			this.cutsceneOver = true;
+			this.tutorialLayer.setHidden(false)
 			return
 		}
-		let interval = 8;
-		let fadeTime = 1;
+		if (this.levelNumber !== 0 || this.cutsceneTimer > 16) {
+			this.cutsceneOver = true;
+			this.tutorialLayer.setHidden(true)
+			return
+		}
 
 		this.cutsceneTimer += deltaT
-
-		this.cutsceneFade1.color.a = 0;
-		this.cutsceneFade2.color.a = 0;
-
-		if(this.cutsceneTimer <= interval) {
-			if(this.cutsceneTimer > interval - fadeTime) {
-				let amountThrough = ((this.cutsceneTimer - (interval-fadeTime)) / fadeTime);
-				if(amountThrough < 0) amountThrough = 0;
-				if(amountThrough > 1) amountThrough = 1;
-
-				this.cutsceneFade1.color.a = amountThrough;
-			}
-		}
-		else if(this.cutsceneTimer <= interval*2) {
-			if(this.cutsceneTimer > interval*2 - fadeTime) {
-				let amountThrough = ((this.cutsceneTimer - (interval*2-fadeTime)) / fadeTime);
-				if(amountThrough < 0) amountThrough = 0;
-				if(amountThrough > 1) amountThrough = 1;
-
-				this.cutsceneFade2.color.a = amountThrough;
-			}
-		}
-
-		if (this.cutsceneTimer > interval*2) {
+		if (this.cutsceneTimer > 16) {
 			this.cutscene2Layer.setHidden(true)
 			this.gameLayer.setHidden(false)
 			this.uiLayer.setHidden(false)
 			this.backgroundLayer.setHidden(false)
-		} else if (this.cutsceneTimer > interval) {
+		} else if (this.cutsceneTimer > 8) {
 			this.cutscene1Layer.setHidden(true)
 			this.cutscene2Layer.setHidden(false)
 		}
@@ -619,10 +675,14 @@ export default class Base_Scene extends Scene {
 				this.tryAgain.setHidden(false)
 				this.gameLayer.setHidden(true)
 				this.uiLayer.setHidden(true)
+				this.tutorialLayer.setHidden(true)
+				this.pathdotLayer.setHidden(true)
 			} else if (event.type === GameEvents.LEVEL_PASS) {
 				this.nextLevel.setHidden(false)
 				this.gameLayer.setHidden(true)
+				this.tutorialLayer.setHidden(true)
 				this.uiLayer.setHidden(true)
+				this.pathdotLayer.setHidden(true)
 			} else if (event.type === GameEvents.MENU) {
 				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
 				this.sceneManager.changeToScene(MainMenu)
@@ -631,20 +691,30 @@ export default class Base_Scene extends Scene {
 				this.switchLevel(this.levelNumber)
 				this.gameLayer.setHidden(false)
 				this.uiLayer.setHidden(false)
+				this.pathdotLayer.setHidden(false)
 				this.nextLevel.setHidden(true)
 			} else if (event.type === GameEvents.TRY_AGAIN) {
 				this.resetLevel(this.levelNumber)
-				this.gameLayer.setHidden(false)
-				this.uiLayer.setHidden(false)
-				this.tryAgain.setHidden(true)
-			} else if (event.type === GameEvents.PAUSE) {
-				this.pauseLayer.setHidden(false)
-				this.paused = true;
-				(<CuePlayerController>this.player._ai).paused = true;
-			} else if (event.type === GameEvents.UNPAUSE) {
+				if (this.levelNumber == 0) {
+					this.tutorialLayer.setHidden(false)
+				}
 				this.pauseLayer.setHidden(true)
 				this.paused = false;
 				(<CuePlayerController>this.player._ai).paused = false;
+				this.gameLayer.setHidden(false)
+				this.pathdotLayer.setHidden(false)
+				this.uiLayer.setHidden(false)
+				this.tryAgain.setHidden(true)
+			} else if (event.type === GameEvents.PAUSE) {
+				if (this.paused) {
+					this.pauseLayer.setHidden(true)
+					this.paused = false;
+					(<CuePlayerController>this.player._ai).paused = false;
+				} else {
+					this.pauseLayer.setHidden(false)
+					this.paused = true;
+					(<CuePlayerController>this.player._ai).paused = true;
+				}
 			}
 		}
 	}
@@ -748,15 +818,6 @@ export default class Base_Scene extends Scene {
 	}
 
 	render(): void {
-		/*
-		for(let i = 0; i < this.backgroundStars.length; i++) {
-			let star: AABB = this.backgroundStars[i];
-			(this.renderingManager as CanvasRenderer).ctx 
-			Debug.drawBox(star.center, star.halfSize, true,
-						  new Color(255, 255, 255, this.backgroundStarAlphas[i]));
-		}
-		*/
-
         // Get the visible set of nodes
         let visibleSet = this.sceneGraph.getVisibleSet();
 
@@ -774,9 +835,9 @@ export default class Base_Scene extends Scene {
         this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers);
 
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
-		if (!this.playerClearStage && !this.playerDead) {
+		if (!this.playerClearStage && !this.playerDead && !this.hardMode && !this.paused && this.cutsceneOver) {
 			for (let asteroid of level.asteroids) {
-				Debug.drawCircle(asteroid.position, asteroid.mass, false, Color.WHITE);
+				Debug.drawCircle(asteroid.position, asteroid.mass/1.25, false, Color.WHITE);
 			}
 		}
 

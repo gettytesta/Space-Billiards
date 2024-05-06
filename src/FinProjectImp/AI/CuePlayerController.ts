@@ -33,22 +33,10 @@ export default class CuePlayerController implements AI {
 	public assignedVelocity: Vec2 = new Vec2(0,0)
 	private trajectorySet: boolean = false; 
 	// If the fire button was pressed
-	private didFire: boolean = false;
+	public didFire: boolean = false;
 
 	public paused = false;
 
-	// HOMEWORK 2 - TODO
-	/**
-	 * This method initializes all variables inside of this AI class, and sets
-	 * up anything we need it do.
-	 * 
-	 * You should subscribe to the correct event for player damage here using the Receiver.
-	 * The AI will react to the event in handleEvent() - you just need to make sure
-	 * it is subscribed to them.
-	 * 
-	 * @param owner The owner of this AI - i.e. the player
-	 * @param options The list of options for ai initialization
-	 */
 	initializeAI(owner: AnimatedSprite, options: Record<string, any>): void {
 		this.owner = options.owner;
 
@@ -90,7 +78,6 @@ export default class CuePlayerController implements AI {
 					// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "fire", loop: false, holdReference: false});
 					this.didFire = true;
 					this.directionArrow.visible = false
-					this.owner.animation.play("spinning")
 				}
 			}
 		}
@@ -118,7 +105,7 @@ export default class CuePlayerController implements AI {
 				let distX
 				let distY
 				let angle
-				var maxDist = 150
+				var maxDist = 165
 				if (this.mouseStart.x < this.mouseEnd.x) {
 					// We're on the right quadrants
 					distX = this.mouseEnd.x - this.mouseStart.x
@@ -127,7 +114,14 @@ export default class CuePlayerController implements AI {
 					if (this.mouseStart.y > this.mouseEnd.y) {
 						// Top right quadrant
 						distY = this.mouseStart.y - this.mouseEnd.y
-						distY = MathUtils.clamp(distY, 0, maxDist)
+						
+						let distanceBetween = new Vec2(this.owner.position.x+distX, this.owner.position.y-distY)
+						if (this.owner.position.distanceTo(distanceBetween) > maxDist) {
+							const scaleFactor = maxDist / this.owner.position.distanceTo(distanceBetween);
+							distX *= scaleFactor;
+							distY *= scaleFactor;
+						}
+
 						angle = Math.atan2(distY, distX)
 	
 						this.assignedVelocity = new Vec2(distX, -distY)
@@ -136,7 +130,14 @@ export default class CuePlayerController implements AI {
 					} else {
 						// Bottom right quadrant
 						distY = this.mouseEnd.y - this.mouseStart.y
-						distY = MathUtils.clamp(distY, 0, maxDist)
+
+						let distanceBetween = new Vec2(this.owner.position.x+distX, this.owner.position.y+distY)
+						if (this.owner.position.distanceTo(distanceBetween) > maxDist) {
+							const scaleFactor = maxDist / this.owner.position.distanceTo(distanceBetween);
+							distX *= scaleFactor;
+							distY *= scaleFactor;
+						}
+
 						angle = Math.atan2(distY, distX)
 						angle = ((Math.PI/2) - angle) + 3*Math.PI/2
 	
@@ -147,14 +148,19 @@ export default class CuePlayerController implements AI {
 				} else {
 					// We're on the left quadrants
 					distX = this.mouseStart.x - this.mouseEnd.x
-					distX = MathUtils.clamp(distX, 0, maxDist)
 	
 					if (this.mouseStart.y > this.mouseEnd.y) {
 						// Top left quadrant
 						distY = this.mouseStart.y - this.mouseEnd.y
-						distY = MathUtils.clamp(distY, 0, maxDist)
-						angle = Math.atan2(distY, distX)
 
+						let distanceBetween = new Vec2(this.owner.position.x-distX, this.owner.position.y-distY)
+						if (this.owner.position.distanceTo(distanceBetween) > maxDist) {
+							const scaleFactor = maxDist / this.owner.position.distanceTo(distanceBetween);
+							distX *= scaleFactor;
+							distY *= scaleFactor;
+						}
+
+						angle = Math.atan2(distY, distX)
 						angle = ((Math.PI/2) - angle) + Math.PI/2
 	
 						this.assignedVelocity = new Vec2(-distX, -distY)
@@ -163,9 +169,15 @@ export default class CuePlayerController implements AI {
 					} else {
 						// Bottom left quadrant
 						distY = this.mouseEnd.y - this.mouseStart.y
-						distY = MathUtils.clamp(distY, 0, maxDist)
-						angle = Math.atan2(distY, distX)
 
+						let distanceBetween = new Vec2(this.owner.position.x-distX, this.owner.position.y+distY)
+						if (this.owner.position.distanceTo(distanceBetween) > maxDist) {
+							const scaleFactor = maxDist / this.owner.position.distanceTo(distanceBetween);
+							distX *= scaleFactor;
+							distY *= scaleFactor;
+						}
+
+						angle = Math.atan2(distY, distX)
 						angle += Math.PI
 	
 						this.assignedVelocity = new Vec2(-distX, distY)
@@ -177,7 +189,7 @@ export default class CuePlayerController implements AI {
 				if (distX > 50 || distY > 50) {
 					this.trajectorySet = true;
 				}
-				this.assignedVelocity.scale(1.6);
+				this.assignedVelocity.scale(1.7);
 			}
 		} else if (this.mouseDragging) {
 			this.mouseDragging = false
