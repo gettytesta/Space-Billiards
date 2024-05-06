@@ -41,6 +41,7 @@ export default class Base_Scene extends Scene {
 	private levelNumberLabel: Label;
 
 	private paused = false;
+	private playing = false;
 
 	private hardMode = false;
 
@@ -152,6 +153,7 @@ export default class Base_Scene extends Scene {
 		this.load.audio("fire", "hw2_assets/sfx/fire.wav")
 		this.load.audio("planet_explode", "hw2_assets/sfx/planet_explode.wav")
 		this.load.audio("oob", "hw2_assets/sfx/oob.wav")
+		this.load.audio("clear", "hw2_assets/sfx/clear.wav")
 		this.load.audio("music", "hw2_assets/music/intro.mp3")
 
 		// Load in the cutscene images for the tutorial
@@ -190,7 +192,7 @@ export default class Base_Scene extends Scene {
 		}
 
 		// Add layer for the path dots
-		this.pathdotLayer = this.addLayer("pathdot", 0);
+		this.pathdotLayer = this.addLayer("pathdot", 3);
 		
 		// It is given a depth of 5 to be above our background
 		this.gameLayer = this.addLayer("primary", 5);
@@ -233,6 +235,14 @@ export default class Base_Scene extends Scene {
 		this.receiver.subscribe(GameEvents.LEVEL8);
 		this.receiver.subscribe(GameEvents.LEVEL9);
 		this.receiver.subscribe(GameEvents.LEVEL10);
+		this.receiver.subscribe(GameEvents.LEVEL11);
+		this.receiver.subscribe(GameEvents.LEVEL12);
+		this.receiver.subscribe(GameEvents.LEVEL13);
+		this.receiver.subscribe(GameEvents.LEVEL14);
+		this.receiver.subscribe(GameEvents.LEVEL15);
+		this.receiver.subscribe(GameEvents.LEVEL16);
+		this.receiver.subscribe(GameEvents.LEVEL17);
+		this.receiver.subscribe(GameEvents.LEVEL18);
         this.receiver.subscribe(GameEvents.HARDMODE);
         this.receiver.subscribe(GameEvents.PAGE_FORWARD);
         this.receiver.subscribe(GameEvents.PAGE_BACKWARD);
@@ -250,8 +260,6 @@ export default class Base_Scene extends Scene {
             this.about.setHidden(true);
 			this.mainMenu.setHidden(false)
 		}
-
-		// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 	}
 
 	updateScene(deltaT: number){
@@ -377,8 +385,9 @@ export default class Base_Scene extends Scene {
 			let currAsteroid = this.add.animatedSprite("asteroid", "primary")
 			currAsteroid.animation.play("idle")
 			currAsteroid.position = asteroid.position
+			currAsteroid.scale.set(asteroid.mass/150, asteroid.mass/150)
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32));
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32*asteroid.mass/150));
 			this.asteroids.push(currAsteroid)
 		}
 
@@ -849,7 +858,6 @@ export default class Base_Scene extends Scene {
 			let currAsteroid = this.add.animatedSprite("asteroid", "primary")
 			currAsteroid.animation.play("idle")
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32));
 			this.asteroids.push(currAsteroid)
 		}
 		// Remove sprites from list if needed
@@ -860,6 +868,8 @@ export default class Base_Scene extends Scene {
 		var i = 0;
 		for (let asteroid of level.asteroids) {
 			this.asteroids[i].position = asteroid.position
+			this.asteroids[i].scale.set(asteroid.mass/150, asteroid.mass/150)
+			this.asteroids[i].setCollisionShape(new Circle(Vec2.ZERO, 32*asteroid.mass/150));
 			i++;
 		}
 
@@ -967,6 +977,7 @@ export default class Base_Scene extends Scene {
 				this.playerDead = true;
             } else if (event.type === GameEvents.LEVEL_FAIL) {
 				this.resetLevel(this.levelNumber)
+				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
 				this.tryAgain.setHidden(false)
 				this.gameLayer.setHidden(true)
 				this.uiLayer.setHidden(true)
@@ -974,13 +985,14 @@ export default class Base_Scene extends Scene {
 				this.pathdotLayer.setHidden(true)
 				this.playerDead = true;
 			} else if (event.type === GameEvents.LEVEL_PASS) {
+				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
 				this.nextLevel.setHidden(false)
 				this.gameLayer.setHidden(true)
 				this.tutorialLayer.setHidden(true)
 				this.uiLayer.setHidden(true)
 				this.pathdotLayer.setHidden(true)
 			} else if (event.type === GameEvents.MENU) {
-				// this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
+				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
 				this.tryAgain.setHidden(true)
 				this.nextLevel.setHidden(false)
 				this.gameLayer.setHidden(true)
@@ -1000,9 +1012,13 @@ export default class Base_Scene extends Scene {
 				this.uiLayer.setHidden(false)
 				this.pathdotLayer.setHidden(false)
 				this.nextLevel.setHidden(true)
+				this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 			} else if (event.type === GameEvents.TRY_AGAIN) {
 				if (this.levelNumber == 0) {
 					this.tutorialLayer.setHidden(false)
+				}
+				if (this.playerDead) {
+					this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 				}
 				this.resetLevel(this.levelNumber)
 				this.pauseLayer.setHidden(true)
@@ -1079,6 +1095,8 @@ export default class Base_Scene extends Scene {
             }
 
             if(event.type === GameEvents.MENU){
+				this.resetLevel(this.levelNumber)
+				this.playing = false;
                 this.mainMenu.setHidden(false);
 				this.pauseLayer.setHidden(true)
 				this.arrowLayer.setHidden(true);
@@ -1150,6 +1168,38 @@ export default class Base_Scene extends Scene {
 				this.levelNumber = 10;
 				this.switchLevel(this.levelNumber)
 				this.gameplaySceneSwitch()
+			} else if (event.type === GameEvents.LEVEL11){
+				this.levelNumber = 11;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+            } else if(event.type === GameEvents.LEVEL12){
+				this.levelNumber = 12;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+            } else if(event.type === GameEvents.LEVEL13){
+				this.levelNumber = 13;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+            } else if(event.type === GameEvents.LEVEL14){
+				this.levelNumber = 14;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+            } else if(event.type === GameEvents.LEVEL15){
+				this.levelNumber = 15;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			} else if(event.type === GameEvents.LEVEL16){
+				this.levelNumber = 16;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			} else if(event.type === GameEvents.LEVEL17){
+				this.levelNumber = 17;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			} else if(event.type === GameEvents.LEVEL18){
+				this.levelNumber = 18;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
 			}
 		}
 	}
@@ -1163,13 +1213,17 @@ export default class Base_Scene extends Scene {
 		this.levelSelect.setHidden(true);
 		this.mainMenu.setHidden(true)
 		this.paused = false;
+		this.playing = true;
+		this.levelNumberLabel.textColor = this.hardMode ? Color.RED : Color.YELLOW;
 		(<CuePlayerController>this.player._ai).paused = false;
+		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 	}
 
 	handleCollisions(){
 		// Check for collision with black hole
 		if (Base_Scene.checkCircletoCircleCollision(<Circle>this.player.collisionShape, <Circle>this.black_hole.collisionShape)) {
 			this.emitter.fireEvent(GameEvents.PLANET_HIT_BLACKHOLE, {id: this.player.id})
+			this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "clear", loop: false, holdReference: false});
 		}
 		// Check for collision with asteroid(s)
 		for (let asteroid of this.asteroids) {
@@ -1282,7 +1336,7 @@ export default class Base_Scene extends Scene {
         this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers);
 
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
-		if (!this.playerClearStage && !this.playerDead && !this.hardMode && !this.paused && this.cutsceneOver) {
+		if (!this.playerClearStage && !this.playerDead && !this.hardMode && !this.paused && this.cutsceneOver && this.playing) {
 			for (let asteroid of level.asteroids) {
 				Debug.drawCircle(asteroid.position, asteroid.mass/1.25, false, Color.WHITE);
 			}

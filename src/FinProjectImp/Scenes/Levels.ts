@@ -31,6 +31,22 @@ export default class Levels {
 				return this.getLevel9(viewport)
 			case 10:
 				return this.getLevel10(viewport)
+			case 11:
+				return this.getLevel11(viewport)
+			case 12:
+				return this.getLevel12(viewport)
+			case 13:
+				return this.getLevel13(viewport)
+			case 14:
+				return this.getLevel14(viewport)
+			case 15:
+				return this.getLevel15(viewport)
+			case 16:
+				return this.getLevel16(viewport)
+			case 17:
+				return this.getLevel17(viewport)
+			case 18:
+				return this.getLevel18(viewport)
 			default:
 				return this.getLevel1(viewport)
 		}
@@ -161,5 +177,52 @@ export default class Levels {
 		var wormholePairs : Array<WormholePair> = [new WormholePair(new Vec2(400, viewport.getCenter().y),
 																	new Vec2(800, viewport.getCenter().y+300))]
 		return new Level(bhp , asteroids, stars, wormholePairs, cp)
+	}
+	static getLevel11(viewport:Viewport) : Level {
+		return new Level(new Vec2(0,0), new Array(), new Array(), new Array(), new Vec2(0,0))
+	}
+	static getLevel12(viewport:Viewport) : Level {
+		return new Level(new Vec2(0,0), new Array(), new Array(), new Array(), new Vec2(0,0))
+	}
+	static getLevel13(viewport:Viewport) : Level {
+		return new Level(new Vec2(0,0), new Array(), new Array(), new Array(), new Vec2(0,0))
+	}
+	static getLevel14(viewport:Viewport) : Level {
+		return new Level(new Vec2(0,0), new Array(), new Array(), new Array(), new Vec2(0,0))
+	}
+	static getLevel15(viewport:Viewport) : Level {
+		return new Level(new Vec2(0,0), new Array(), new Array(), new Array(), new Vec2(0,0))
+	}
+
+	// One giant asteroid, curve all the way around it
+	static getLevel16(viewport:Viewport) : Level {
+		var bhp = new Vec2(viewport.getCenter().x+350, viewport.getCenter().y-200)
+		var asteroids : Array<Asteroid> = [new Asteroid(viewport.getCenter().clone(), 300)]
+		var stars : Array<Star> = [new Star(new Vec2(viewport.getCenter().x+350, viewport.getCenter().y))]
+		var cp = new Vec2(viewport.getCenter().x+350, viewport.getCenter().y+200)
+		return new Level(bhp, asteroids, stars, new Array(), cp);
+	}
+
+	// Two asteroids, curve around both, even harder
+	static getLevel17(viewport:Viewport) : Level {
+		var bhp = new Vec2(viewport.getCenter().x-150, viewport.getCenter().y-320)
+		var asteroids : Array<Asteroid> = [new Asteroid(new Vec2(viewport.getCenter().x+220, viewport.getCenter().y-50), 200),
+											new Asteroid(new Vec2(viewport.getCenter().x-150, viewport.getCenter().y+50), 200)]
+		var stars : Array<Star> = [new Star(new Vec2(viewport.getCenter().x-150, viewport.getCenter().y-100)),
+									new Star(new Vec2(viewport.getCenter().x+220, viewport.getCenter().y+100))]
+		var cp = new Vec2(viewport.getCenter().x+420, viewport.getCenter().y+100)
+		return new Level(bhp, asteroids, stars, new Array(), cp);
+	}
+
+	// Three asteroids, impossible (not actually)
+	static getLevel18(viewport:Viewport) : Level {
+		var bhp = new Vec2(viewport.getCenter().x-450, viewport.getCenter().y+220)
+		var asteroids : Array<Asteroid> = [new Asteroid(new Vec2(viewport.getCenter().x+250, viewport.getCenter().y-150), 200),
+											new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y+130), 200),
+											new Asteroid(new Vec2(viewport.getCenter().x-250, viewport.getCenter().y-150), 200)]
+		var stars : Array<Star> = [new Star(new Vec2(viewport.getCenter().x-250, viewport.getCenter().y+280)),
+									new Star(new Vec2(viewport.getCenter().x+250, viewport.getCenter().y+110))]
+		var cp = new Vec2(viewport.getCenter().x+400, viewport.getCenter().y+220)
+		return new Level(bhp, asteroids, stars, new Array(), cp);
 	}
 }
