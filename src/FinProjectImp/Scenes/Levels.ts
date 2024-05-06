@@ -29,6 +29,8 @@ export default class Levels {
 				return this.getLevel8(viewport)
 			case 9:
 				return this.getLevel9(viewport)
+			case 10:
+				return this.getLevel10(viewport)
 			default:
 				return this.getLevel1(viewport)
 		}
@@ -142,5 +144,9 @@ export default class Levels {
 									new Star(new Vec2(viewport.getCenter().x+220, viewport.getCenter().y+100))]
 		var cp = new Vec2(viewport.getCenter().x+420, viewport.getCenter().y+100)
 		return new Level(bhp, asteroids, stars, new Array(), cp);
+	}
+
+	static getLevel10(viewport:Viewport) : Level {
+		return new Level(new Vec2(0,0), new Array(), new Array(), new Array(), new Vec2(0,0))
 	}
 }

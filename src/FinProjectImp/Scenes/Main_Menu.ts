@@ -17,6 +17,23 @@ export default class MainMenu extends Scene {
     private about: Layer;
     private levelSelect: Layer;
 
+    private levelIndex: number = 0;
+
+    private levelButtons = Array<UIElement>();
+
+    private LevelButtonPositions: Vec2[] = [
+        new Vec2(this.viewport.getCenter().x-300, this.viewport.getCenter().y-150),
+        new Vec2(this.viewport.getCenter().x, this.viewport.getCenter().y-150),
+        new Vec2(this.viewport.getCenter().x+300, this.viewport.getCenter().y-150),
+        new Vec2(this.viewport.getCenter().x-300, this.viewport.getCenter().y),
+        new Vec2(this.viewport.getCenter().x, this.viewport.getCenter().y),
+        new Vec2(this.viewport.getCenter().x+300, this.viewport.getCenter().y),
+        new Vec2(this.viewport.getCenter().x-300, this.viewport.getCenter().y+150),
+        new Vec2(this.viewport.getCenter().x, this.viewport.getCenter().y+150),
+        new Vec2(this.viewport.getCenter().x+300, this.viewport.getCenter().y+150),
+        new Vec2(-5000, -5000)
+    ]   
+
 	private logo: AnimatedSprite;
 	private dragDiagram: Sprite;
 
@@ -90,69 +107,94 @@ export default class MainMenu extends Scene {
         this.levelSelect = this.addUILayer("levelSelect");
         this.levelSelect.setHidden(true)
 
+        
+
         // Add level1 button
-        const level1 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x-300, center.y-150), text: "Level 1"});
+        const level1 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[0], text: "Level 1"});
         level1.size.set(200, 100);
         level1.borderWidth = 2;
         level1.borderColor = Color.WHITE;
         level1.backgroundColor = Color.BLACK;
         level1.onClickEventId = GameEvents.LEVEL1;
 
-        const level2 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x, center.y-150), text: "Level 2"});
+        const level2 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[1], text: "Level 2"});
         level2.size.set(200, 100);
         level2.borderWidth = 2;
         level2.borderColor = Color.WHITE;
         level2.backgroundColor = Color.BLACK;
         level2.onClickEventId = GameEvents.LEVEL2;
 
-        const level3 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x+300, center.y-150), text: "Level 3"});
+        const level3 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[2], text: "Level 3"});
         level3.size.set(200, 100);
         level3.borderWidth = 2;
         level3.borderColor = Color.WHITE;
         level3.backgroundColor = Color.BLACK;
         level3.onClickEventId = GameEvents.LEVEL3;
 
-        const level4 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x-300, center.y), text: "Level 4"});
+        const level4 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[3], text: "Level 4"});
         level4.size.set(200, 100);
         level4.borderWidth = 2;
         level4.borderColor = Color.WHITE;
         level4.backgroundColor = Color.BLACK;
         level4.onClickEventId = GameEvents.LEVEL4;
 
-        const level5 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x, center.y), text: "Level 5"});
+        const level5 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[4], text: "Level 5"});
         level5.size.set(200, 100);
         level5.borderWidth = 2;
         level5.borderColor = Color.WHITE;
         level5.backgroundColor = Color.BLACK;
         level5.onClickEventId = GameEvents.LEVEL5;
 
-        const level6 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x+300, center.y), text: "Level 6"});
+        const level6 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[5], text: "Level 6"});
         level6.size.set(200, 100);
         level6.borderWidth = 2;
         level6.borderColor = Color.WHITE;
         level6.backgroundColor = Color.BLACK;
         level6.onClickEventId = GameEvents.LEVEL6;
 
-        const level7 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x-300, center.y+150), text: "Level 7"});
+        const level7 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[6], text: "Level 7"});
         level7.size.set(200, 100);
         level7.borderWidth = 2;
         level7.borderColor = Color.WHITE;
         level7.backgroundColor = Color.BLACK;
         level7.onClickEventId = GameEvents.LEVEL7;
 
-        const level8 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x, center.y+150), text: "Level 8"});
+        const level8 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[7], text: "Level 8"});
         level8.size.set(200, 100);
         level8.borderWidth = 2;
         level8.borderColor = Color.WHITE;
         level8.backgroundColor = Color.BLACK;
         level8.onClickEventId = GameEvents.LEVEL8;
 
-        const level9 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x+300, center.y+150), text: "Level 9"});
+        const level9 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[8], text: "Level 9"});
         level9.size.set(200, 100);
         level9.borderWidth = 2;
         level9.borderColor = Color.WHITE;
         level9.backgroundColor = Color.BLACK;
         level9.onClickEventId = GameEvents.LEVEL9;
+
+        const level10 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 10"});
+        level10.size.set(200, 100);
+        level10.borderWidth = 2;
+        level10.borderColor = Color.WHITE;
+        level10.backgroundColor = Color.BLACK;
+        level10.onClickEventId = GameEvents.LEVEL10;
+
+
+
+
+        //Constructing the LevelArray for use with the page feature
+        this.levelButtons.push(level1)
+        this.levelButtons.push(level2)
+        this.levelButtons.push(level3)
+        this.levelButtons.push(level4)
+        this.levelButtons.push(level5)
+        this.levelButtons.push(level6)
+        this.levelButtons.push(level7)
+        this.levelButtons.push(level8)
+        this.levelButtons.push(level9)
+        this.levelButtons.push(level10)
+
 
         // Add menu button
         const menu = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x-180, center.y-300), text: "Main Menu"});
@@ -178,6 +220,21 @@ export default class MainMenu extends Scene {
         this.hardmodeOpt.backgroundColor = Color.BLACK;
         this.hardmodeOpt.onClickEventId = GameEvents.HARDMODE;
 
+        //Add Page forward Button
+        const pageForward = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x + 300, center.y+300), text: "Next Page"})
+        pageForward.size.set(180, 50);
+        pageForward.borderWidth = 2;
+        pageForward.borderColor = Color.WHITE;
+        pageForward.backgroundColor = Color.BLACK;
+        pageForward.onClickEventId = GameEvents.PAGE_FORWARD;
+
+        //Add Page forward Button
+        const pageBackward = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x - 300, center.y+300), text: "Prev Page"})
+        pageBackward.size.set(180, 50);
+        pageBackward.borderWidth = 2;
+        pageBackward.borderColor = Color.WHITE;
+        pageBackward.backgroundColor = Color.BLACK;
+        pageBackward.onClickEventId = GameEvents.PAGE_BACKWARD;
 
         /**
          * THE CONTROL SCREEN
@@ -255,7 +312,10 @@ export default class MainMenu extends Scene {
         this.receiver.subscribe(GameEvents.LEVEL7);
         this.receiver.subscribe(GameEvents.LEVEL8);
         this.receiver.subscribe(GameEvents.LEVEL9);
-        this.receiver.subscribe(GameEvents.HARDMODE)
+        this.receiver.subscribe(GameEvents.LEVEL10);
+        this.receiver.subscribe(GameEvents.HARDMODE);
+        this.receiver.subscribe(GameEvents.PAGE_FORWARD);
+        this.receiver.subscribe(GameEvents.PAGE_BACKWARD)
     }
 
     updateScene(){
@@ -307,6 +367,38 @@ export default class MainMenu extends Scene {
                 }
             }
 
+            if (event.type === GameEvents.PAGE_FORWARD){
+                //Add logic for moving the original buttons to -5000, -5000
+                if(this.levelIndex + 9 < this.levelButtons.length){
+                    console.log("I'm here!")
+                    for(let i  = 0; i < Math.min(9, this.levelButtons.length - this.levelIndex); i++)
+                    {
+                        this.levelButtons[i + this.levelIndex].position = this.LevelButtonPositions[9]
+                    }
+                    this.levelIndex += 9
+                    for(let i = 0; i < this.levelButtons.length - this.levelIndex; i++)
+                    {
+                        this.levelButtons[i + this.levelIndex].position = this.LevelButtonPositions[i]
+                    }
+                }
+            }
+
+            if (event.type === GameEvents.PAGE_BACKWARD){
+                //Add logic for moving the original buttons to -5000, -5000
+                if(this.levelIndex != 0) {
+                    console.log("I'm here!")
+                    for(let i  = 0; i < Math.min(9, this.levelButtons.length - this.levelIndex); i++)
+                    {
+                        this.levelButtons[i + this.levelIndex].position = this.LevelButtonPositions[9]
+                    }
+                    this.levelIndex -= 9
+                    for(let i = 0; i < Math.min(9, this.levelButtons.length - this.levelIndex); i++)
+                    {
+                        this.levelButtons[i + this.levelIndex].position = this.LevelButtonPositions[i]
+                    }
+                }
+            }
+
             if (event.type === GameEvents.LEVEL1){
                 this.sceneManager.changeToScene(Base_Scene, {levelNum: 1});
             } else if(event.type === GameEvents.LEVEL2){
@@ -325,7 +417,10 @@ export default class MainMenu extends Scene {
                 this.sceneManager.changeToScene(Base_Scene, {levelNum: 8});
             } else if(event.type === GameEvents.LEVEL9){
                 this.sceneManager.changeToScene(Base_Scene, {levelNum: 9});
+            } else if(event.type === GameEvents.LEVEL10){
+                this.sceneManager.changeToScene(Base_Scene, {levelNum: 10});
             }
+            
         }
     }
 }
