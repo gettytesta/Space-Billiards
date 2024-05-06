@@ -705,6 +705,61 @@ export default class Base_Scene extends Scene {
         level10.backgroundColor = Color.BLACK;
         level10.onClickEventId = GameEvents.LEVEL10;
 
+		const level11 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 11"});
+        level11.size.set(200, 100);
+        level11.borderWidth = 2;
+        level11.borderColor = Color.WHITE;
+        level11.backgroundColor = Color.BLACK;
+        level11.onClickEventId = GameEvents.LEVEL11;
+
+		const level12 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 12"});
+        level12.size.set(200, 100);
+        level12.borderWidth = 2;
+        level12.borderColor = Color.WHITE;
+        level12.backgroundColor = Color.BLACK;
+        level12.onClickEventId = GameEvents.LEVEL12;
+
+		const level13 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 13"});
+        level13.size.set(200, 100);
+        level13.borderWidth = 2;
+        level13.borderColor = Color.WHITE;
+        level13.backgroundColor = Color.BLACK;
+        level13.onClickEventId = GameEvents.LEVEL13;
+
+		const level14 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 14"});
+        level14.size.set(200, 100);
+        level14.borderWidth = 2;
+        level14.borderColor = Color.WHITE;
+        level14.backgroundColor = Color.BLACK;
+        level14.onClickEventId = GameEvents.LEVEL14;
+
+		const level15 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 15"});
+        level15.size.set(200, 100);
+        level15.borderWidth = 2;
+        level15.borderColor = Color.WHITE;
+        level15.backgroundColor = Color.BLACK;
+        level15.onClickEventId = GameEvents.LEVEL15;
+
+		const level16 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 16"});
+        level16.size.set(200, 100);
+        level16.borderWidth = 2;
+        level16.borderColor = Color.WHITE;
+        level16.backgroundColor = Color.BLACK;
+        level16.onClickEventId = GameEvents.LEVEL16;
+
+		const level17 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 17"});
+        level17.size.set(200, 100);
+        level17.borderWidth = 2;
+        level17.borderColor = Color.WHITE;
+        level17.backgroundColor = Color.BLACK;
+        level17.onClickEventId = GameEvents.LEVEL17;
+
+		const level18 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 18"});
+        level18.size.set(200, 100);
+        level18.borderWidth = 2;
+        level18.borderColor = Color.WHITE;
+        level18.backgroundColor = Color.BLACK;
+        level18.onClickEventId = GameEvents.LEVEL18;
 
         //Constructing the LevelArray for use with the page feature
         this.levelButtons.push(level1)
@@ -717,6 +772,15 @@ export default class Base_Scene extends Scene {
         this.levelButtons.push(level8)
         this.levelButtons.push(level9)
         this.levelButtons.push(level10)
+		this.levelButtons.push(level11)
+		this.levelButtons.push(level12)
+		this.levelButtons.push(level13)
+		this.levelButtons.push(level14)
+		this.levelButtons.push(level15)
+		this.levelButtons.push(level16)
+		this.levelButtons.push(level17)
+		this.levelButtons.push(level18)
+		
 
 
         // Add menu button
