@@ -1,8 +1,8 @@
 {
-	"name": "star",
-	"spriteSheetImage": "star.png",
-	"spriteWidth": 64,
-	"spriteHeight": 64,
+	"name": "blackhole",
+	"spriteSheetImage": "blackhole.png",
+	"spriteWidth": 128,
+	"spriteHeight": 128,
 	"leftBuffer": 0,
 	"rightBuffer": 0,
 	"topBuffer": 0,

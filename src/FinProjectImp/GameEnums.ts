@@ -6,11 +6,13 @@ export enum GameEvents {
 	TRAJECTORY_SET = "TRAJECTORY_SET",
 	PLAY_GAME = "PLAY_GAME",
 	PAUSE = "PAUSE",
-	UNPAUSE = "UNPAUSE",
 	NEXT_LEVEL = "NEXT_LEVEL",
 	LEVEL_FAIL = "LEVEL_FAIL",
 	LEVEL_PASS = "LEVEL_PASS",
 	TRY_AGAIN = "TRY_AGAIN",
+
+	PAGE_FORWARD = "PAGE_FORWARD",
+	PAGE_BACKWARD = "PAGE_BACKWARD",
 
 	TUTORIAL = "TUTORIAL",
 	LEVEL1 = "LEVEL1",
@@ -22,6 +24,8 @@ export enum GameEvents {
 	LEVEL7 = "LEVEL7",
 	LEVEL8 = "LEVEL8",
 	LEVEL9 = "LEVEL9",
+	LEVEL10 = "LEVEL10",
+	HARDMODE = "HARDMODE",
 
 	FIRE_BALL = "FIRE_BALL",
 
@@ -29,11 +33,4 @@ export enum GameEvents {
 	PLANET_HIT_WORMHOLE = "PLANET_HIT_WORMHOLE",
 	PLANET_HIT_BLACKHOLE = "PLANET_HIT_BLACKHOLE",
 	PLANET_OOB = "PLANET_OOB",
-}
-
-export enum GameAnimations {
-	// TESTA - These will be changed later on
-	CUE_IDLE = "idle",
-	CUE_SPINNING = "spinning",
-	CUE_SELECTED = "selected"
 }

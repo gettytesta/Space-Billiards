@@ -176,7 +176,7 @@ export default class Debug {
 	/** Renders the text sent to the Debug canvas */
 	static renderText(): void {
 		let y = 20;
-		this.debugRenderingContext.font = "20px Arial";
+		this.debugRenderingContext.font = "20px Blue Screen";
 		this.debugRenderingContext.fillStyle = this.defaultTextColor.toString();
 
 		// Draw all of the text
@@ -185,6 +185,7 @@ export default class Debug {
 			y += 30;	
 		});
 	}
+
 
 	/** Renders the nodes registered with the debug canvas */
 	static renderNodes(): void {
