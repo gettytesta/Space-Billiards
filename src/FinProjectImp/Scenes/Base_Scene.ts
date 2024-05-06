@@ -41,6 +41,7 @@ export default class Base_Scene extends Scene {
 	private levelNumberLabel: Label;
 
 	private paused = false;
+	private playing = false;
 
 	private hardMode = false;
 
@@ -250,8 +251,6 @@ export default class Base_Scene extends Scene {
             this.about.setHidden(true);
 			this.mainMenu.setHidden(false)
 		}
-
-		// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 	}
 
 	updateScene(deltaT: number){
@@ -377,8 +376,9 @@ export default class Base_Scene extends Scene {
 			let currAsteroid = this.add.animatedSprite("asteroid", "primary")
 			currAsteroid.animation.play("idle")
 			currAsteroid.position = asteroid.position
+			currAsteroid.scale.set(asteroid.mass/150, asteroid.mass/150)
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32));
+			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32*asteroid.mass/150));
 			this.asteroids.push(currAsteroid)
 		}
 
@@ -849,7 +849,6 @@ export default class Base_Scene extends Scene {
 			let currAsteroid = this.add.animatedSprite("asteroid", "primary")
 			currAsteroid.animation.play("idle")
 			currAsteroid.addAI(AsteroidAI)
-			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32));
 			this.asteroids.push(currAsteroid)
 		}
 		// Remove sprites from list if needed
@@ -860,6 +859,8 @@ export default class Base_Scene extends Scene {
 		var i = 0;
 		for (let asteroid of level.asteroids) {
 			this.asteroids[i].position = asteroid.position
+			this.asteroids[i].scale.set(asteroid.mass/150, asteroid.mass/150)
+			this.asteroids[i].setCollisionShape(new Circle(Vec2.ZERO, 32*asteroid.mass/150));
 			i++;
 		}
 
@@ -980,7 +981,7 @@ export default class Base_Scene extends Scene {
 				this.uiLayer.setHidden(true)
 				this.pathdotLayer.setHidden(true)
 			} else if (event.type === GameEvents.MENU) {
-				// this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
+				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
 				this.tryAgain.setHidden(true)
 				this.nextLevel.setHidden(false)
 				this.gameLayer.setHidden(true)
@@ -1079,6 +1080,8 @@ export default class Base_Scene extends Scene {
             }
 
             if(event.type === GameEvents.MENU){
+				this.resetLevel(this.levelNumber)
+				this.playing = false;
                 this.mainMenu.setHidden(false);
 				this.pauseLayer.setHidden(true)
 				this.arrowLayer.setHidden(true);
@@ -1163,7 +1166,10 @@ export default class Base_Scene extends Scene {
 		this.levelSelect.setHidden(true);
 		this.mainMenu.setHidden(true)
 		this.paused = false;
+		this.playing = true;
+		this.levelNumberLabel.textColor = this.hardMode ? Color.RED : Color.YELLOW;
 		(<CuePlayerController>this.player._ai).paused = false;
+		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 	}
 
 	handleCollisions(){
@@ -1282,7 +1288,7 @@ export default class Base_Scene extends Scene {
         this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers);
 
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
-		if (!this.playerClearStage && !this.playerDead && !this.hardMode && !this.paused && this.cutsceneOver) {
+		if (!this.playerClearStage && !this.playerDead && !this.hardMode && !this.paused && this.cutsceneOver && this.playing) {
 			for (let asteroid of level.asteroids) {
 				Debug.drawCircle(asteroid.position, asteroid.mass/1.25, false, Color.WHITE);
 			}
