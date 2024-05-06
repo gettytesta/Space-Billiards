@@ -65,12 +65,14 @@ export default class Base_Scene extends Scene {
 
 	private cs1: Sprite;
 	private cs2: Sprite;
+	private csTransition: Rect;
 
 	// Other variables
 	private WORLD_PADDING: Vec2 = new Vec2(64, 64);
 
 	// Timer for the tutorial cutscene
 	private cutsceneTimer = 0;
+	private cutsceneScreen = 0;
 	private cutsceneOver = false;
 	// Timer for printing the path dots
 	private pathdotTimer = .3;
@@ -192,6 +194,7 @@ export default class Base_Scene extends Scene {
 			this.uiLayer.setHidden(true)
 
 			this.cutscene1Layer.setHidden(false)
+			this.cutsceneScreen = 1;
 		}
 
 		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
@@ -490,7 +493,6 @@ export default class Base_Scene extends Scene {
 		this.cs1 = this.add.sprite("cutscene1", "cutscene1Layer")
 		this.cs1.position = this.viewport.getCenter()
 		this.cs1.scale.set(1.1,1.1)
-		this.cs1.alpha = 1
 
 		this.cutscene2Layer = this.addLayer("cutscene2Layer", 3)
 		this.cutscene2Layer.setHidden(true)
@@ -498,7 +500,8 @@ export default class Base_Scene extends Scene {
 		this.cs2 = this.add.sprite("cutscene2", "cutscene2Layer")
 		this.cs2.position = this.viewport.getCenter()
 		this.cs2.scale.set(1.1,1.1)
-		this.cs2.alpha = 0
+
+		this.csTransition = new Rect(center, new Vec2(1000,1000))
 
 		/**
 		 * TUTORIAL LAYER
@@ -633,14 +636,18 @@ export default class Base_Scene extends Scene {
 		}
 
 		this.cutsceneTimer += deltaT
-		if (this.cutsceneTimer > 16) {
+		if (this.cutsceneTimer > 20 && this.cutsceneScreen == 2) {
 			this.cutscene2Layer.setHidden(true)
 			this.gameLayer.setHidden(false)
 			this.uiLayer.setHidden(false)
 			this.backgroundLayer.setHidden(false)
-		} else if (this.cutsceneTimer > 8) {
+		} else if (this.cutsceneTimer > 10 && this.cutsceneScreen == 2) {
 			this.cutscene1Layer.setHidden(true)
 			this.cutscene2Layer.setHidden(false)
+			this.csTransition.tweens.play("fadeOut")
+		} else if (this.cutsceneTimer > 8 && this.cutsceneScreen == 1) {
+			this.csTransition.tweens.play("fadeIn")
+			this.cutsceneScreen = 2
 		}
 	}
 

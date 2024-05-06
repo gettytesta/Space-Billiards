@@ -23,17 +23,17 @@ export default class MainMenu extends Scene {
     private hardmodeOpt: UIElement;
     public static hardmodeSelected = false;
 
-    public initScene(init: Record<string, any>): void {
+    initScene(init: Record<string, any>): void {
 
 	}
 
-    public loadScene(){
-        //this.load.spritesheet("logo_text", "hw2_assets/spritesheets/logo_text.json")
-		//this.load.image("logo", "hw2_assets/sprites/logo.png")
-		//this.load.image("drag_diagram", "hw2_assets/sprites/drag_diagram.png")
+    loadScene() {
+        // this.load.spritesheet("logo_text", "hw2_assets/spritesheets/logo_text.json")
+		// this.load.image("logo", "hw2_assets/sprites/logo.png")
+		// this.load.image("drag_diagram", "hw2_assets/sprites/drag_diagram.png")
 	}
 
-    public unloadScene(): void {
+    unloadScene(): void {
         this.resourceManager.unloadAllResources()
     }
 
