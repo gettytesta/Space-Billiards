@@ -18,6 +18,9 @@ import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
 import Rect from "../../Wolfie2D/Nodes/Graphics/Rect";
 import UIElement from "../../Wolfie2D/Nodes/UIElement";
 import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
+import { GraphicType } from "../../Wolfie2D/Nodes/Graphics/GraphicTypes";
+import { TweenableProperties } from "../../Wolfie2D/Nodes/GameNode";
+import { EaseFunctionType } from "../../Wolfie2D/Utils/EaseFunctions";
 
 // TESTA - This file should be used for any scene that we create. 
 // We'll then make a new TS file just containing the placements of the items, which base_scene will load in.
@@ -46,7 +49,6 @@ export default class Base_Scene extends Scene {
 	private hardMode = false;
 
 	private asteroids: Array<AnimatedSprite> = new Array();
-	private asteroidWarps: Array<Sprite> = new Array();
 
 	private stars: Array<AnimatedSprite> = new Array();
 
@@ -65,7 +67,6 @@ export default class Base_Scene extends Scene {
 
 	private cs1: Sprite;
 	private cs2: Sprite;
-	private csTransition: Rect;
 
 	// Other variables
 	private WORLD_PADDING: Vec2 = new Vec2(64, 64);
@@ -74,6 +75,7 @@ export default class Base_Scene extends Scene {
 	private cutsceneTimer = 0;
 	private cutsceneScreen = 0;
 	private cutsceneOver = false;
+
 	// Timer for printing the path dots
 	private pathdotTimer = .3;
 
@@ -558,7 +560,31 @@ export default class Base_Scene extends Scene {
 		this.cs2.position = this.viewport.getCenter()
 		this.cs2.scale.set(1.1,1.1)
 
-		this.csTransition = new Rect(center, new Vec2(1000,1000))
+		this.cs2.tweens.add("fadeIn", {
+			startDelay: 0,
+			duration: 1000,
+			effects: [
+			  {
+				property: TweenableProperties.alpha,
+				start: 0,
+				end: 1,
+				ease: EaseFunctionType.IN_OUT_QUAD,
+			  },
+			],
+		});
+	  
+		this.cs1.tweens.add("fadeOut", {
+			startDelay: 0,
+			duration: 1000,
+			effects: [
+			  {
+				property: TweenableProperties.alpha,
+				start: 1,
+				end: 0,
+				ease: EaseFunctionType.IN_OUT_QUAD,
+			  },
+			],
+		});
 
 		/**
 		 * TUTORIAL LAYER
@@ -1005,9 +1031,9 @@ export default class Base_Scene extends Scene {
 		} else if (this.cutsceneTimer > 10 && this.cutsceneScreen == 2) {
 			this.cutscene1Layer.setHidden(true)
 			this.cutscene2Layer.setHidden(false)
-			//this.csTransition.tweens.play("fadeOut")
+			this.cs2.tweens.play("fadeIn")
 		} else if (this.cutsceneTimer > 8 && this.cutsceneScreen == 1) {
-			//this.csTransition.tweens.play("fadeIn")
+			this.cs1.tweens.play("fadeOut")
 			this.cutsceneScreen = 2
 		}
 	}
@@ -1183,14 +1209,14 @@ export default class Base_Scene extends Scene {
 				this.levelNumber = 0;
 				this.switchLevel(this.levelNumber)
 				this.gameplaySceneSwitch()
-				this.backgroundLayer.setHidden(true)
-				this.gameLayer.setHidden(true)
-				this.uiLayer.setHidden(true)
-
-				this.cutscene1Layer.setHidden(false)
-				this.cutsceneScreen = 1;
-				this.cutsceneOver = false
-
+				if (this.cutsceneTimer < 20) {
+					this.backgroundLayer.setHidden(true)
+					this.gameLayer.setHidden(true)
+					this.uiLayer.setHidden(true)
+					this.cutscene1Layer.setHidden(false)
+					this.cutsceneScreen = 1;
+					this.cutsceneOver = false
+				}
 			}
 			if (event.type === GameEvents.LEVEL1){
 				this.levelNumber = 1;
