@@ -190,8 +190,16 @@ export default class Levels {
 	static getLevel14(viewport:Viewport) : Level {
 		return new Level(new Vec2(0,0), new Array(), new Array(), new Array(), new Vec2(0,0))
 	}
+
+	// Three asteroids, overlapping
 	static getLevel15(viewport:Viewport) : Level {
-		return new Level(new Vec2(0,0), new Array(), new Array(), new Array(), new Vec2(0,0))
+		var bhp = new Vec2(viewport.getCenter().x-100, viewport.getCenter().y-300)
+		var asteroids : Array<Asteroid> = [new Asteroid(new Vec2(viewport.getCenter().x+110, viewport.getCenter().y-100), 180),
+											new Asteroid(new Vec2(viewport.getCenter().x, viewport.getCenter().y+100), 180),
+											new Asteroid(new Vec2(viewport.getCenter().x-150, viewport.getCenter().y-80), 180)]
+		var stars : Array<Star> = [new Star(new Vec2(viewport.getCenter().x+200, viewport.getCenter().y-200))]
+		var cp = new Vec2(viewport.getCenter().x+400, viewport.getCenter().y+220)
+		return new Level(bhp, asteroids, stars, new Array(), cp);
 	}
 
 	// One giant asteroid, curve all the way around it
