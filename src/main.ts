@@ -1,5 +1,4 @@
 import Game from "./Wolfie2D/Loop/Game";
-import MainMenu from "./FinProjectImp/Scenes/Main_Menu";
 import AABB from "./Wolfie2D/DataTypes/Shapes/AABB";
 import Vec2 from "./Wolfie2D/DataTypes/Vec2";
 import Circle from "./Wolfie2D/DataTypes/Shapes/Circle";
@@ -32,5 +31,5 @@ import Base_Scene from "./FinProjectImp/Scenes/Base_Scene";
     const game = new Game(options);
 
     // Start our game
-    game.start(MainMenu, {});
+    game.start(Base_Scene, {});
 })();

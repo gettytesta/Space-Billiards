@@ -16,9 +16,8 @@ import Level, { Asteroid, WormholePair } from "./LevelType";
 import Debug from "../../Wolfie2D/Debug/Debug";
 import CanvasNode from "../../Wolfie2D/Nodes/CanvasNode";
 import Rect from "../../Wolfie2D/Nodes/Graphics/Rect";
-import MainMenu from "./Main_Menu";
+import UIElement from "../../Wolfie2D/Nodes/UIElement";
 import { GameEventType } from "../../Wolfie2D/Events/GameEventType";
-
 
 // TESTA - This file should be used for any scene that we create. 
 // We'll then make a new TS file just containing the placements of the items, which base_scene will load in.
@@ -89,13 +88,42 @@ export default class Base_Scene extends Scene {
 	private cutscene2Layer: Layer;
 	private pauseLayer: Layer;
 	private warpLayer: Layer;
+	private arrowLayer: Layer;
 	private tutorialLayer: Layer;
 	private pathdotLayer: Layer;
+	
+	 // Layers, for multiple main menu screens
+	 private mainMenu: Layer;
+	 private controls: Layer;
+	 private about: Layer;
+	 private levelSelect: Layer;
+
+	private levelIndex = 0;
+	 private levelButtons = Array<UIElement>();
+ 
+	 private LevelButtonPositions: Vec2[] = [
+		 new Vec2(this.viewport.getCenter().x-300, this.viewport.getCenter().y-150),
+		 new Vec2(this.viewport.getCenter().x, this.viewport.getCenter().y-150),
+		 new Vec2(this.viewport.getCenter().x+300, this.viewport.getCenter().y-150),
+		 new Vec2(this.viewport.getCenter().x-300, this.viewport.getCenter().y),
+		 new Vec2(this.viewport.getCenter().x, this.viewport.getCenter().y),
+		 new Vec2(this.viewport.getCenter().x+300, this.viewport.getCenter().y),
+		 new Vec2(this.viewport.getCenter().x-300, this.viewport.getCenter().y+150),
+		 new Vec2(this.viewport.getCenter().x, this.viewport.getCenter().y+150),
+		 new Vec2(this.viewport.getCenter().x+300, this.viewport.getCenter().y+150),
+		 new Vec2(-5000, -5000)
+	 ]   
+ 
+	 private logo: AnimatedSprite;
+	 private dragDiagram: Sprite;
+ 
+	 private hardmodeOpt: UIElement;
+	 public static hardmodeSelected = false;
 
 
 	public initScene(init: Record<string, any>): void {
-		this.levelNumber = init.levelNum
-		this.hardMode = MainMenu.hardmodeSelected
+		this.levelNumber = -1
+		this.hardMode = false
 	}
 
 	/*
@@ -129,6 +157,10 @@ export default class Base_Scene extends Scene {
 		// Load in the cutscene images for the tutorial
 		this.load.image("cutscene1", "hw2_assets/cutscene/Space Billiards CS1.png")
 		this.load.image("cutscene2", "hw2_assets/cutscene/Space Billiards CS2.png")
+
+		// this.load.spritesheet("logo_text", "hw2_assets/spritesheets/logo_text.json")
+		// this.load.image("logo", "hw2_assets/sprites/logo.png")
+		// this.load.image("drag_diagram", "hw2_assets/sprites/drag_diagram.png")
 	}
 
 	public unloadScene(): void {
@@ -171,6 +203,8 @@ export default class Base_Scene extends Scene {
 
 		this.initializeLayers();
 
+		this.initializeMenuLayers();
+
 		// Initialize object pools
 		this.initializeObjectPools();
 
@@ -185,19 +219,39 @@ export default class Base_Scene extends Scene {
 		this.receiver.subscribe(GameEvents.TRY_AGAIN)
 		this.receiver.subscribe(GameEvents.NEXT_LEVEL)
 		this.receiver.subscribe(GameEvents.PAUSE)
+        this.receiver.subscribe(GameEvents.LEVEL_SELECT);
+        this.receiver.subscribe(GameEvents.CONTROLS);
+        this.receiver.subscribe(GameEvents.ABOUT);
+        this.receiver.subscribe(GameEvents.TUTORIAL);
+        this.receiver.subscribe(GameEvents.LEVEL1);
+		this.receiver.subscribe(GameEvents.LEVEL2);
+		this.receiver.subscribe(GameEvents.LEVEL3);
+		this.receiver.subscribe(GameEvents.LEVEL4);
+		this.receiver.subscribe(GameEvents.LEVEL5);
+		this.receiver.subscribe(GameEvents.LEVEL6);
+		this.receiver.subscribe(GameEvents.LEVEL7);
+		this.receiver.subscribe(GameEvents.LEVEL8);
+		this.receiver.subscribe(GameEvents.LEVEL9);
+		this.receiver.subscribe(GameEvents.LEVEL10);
+        this.receiver.subscribe(GameEvents.HARDMODE);
+        this.receiver.subscribe(GameEvents.PAGE_FORWARD);
+        this.receiver.subscribe(GameEvents.PAGE_BACKWARD);
 
-
-		// If we've selected the Tutorial Level
-		if (this.levelNumber === 0) {
-			this.backgroundLayer.setHidden(true)
+		if (this.levelNumber == -1) {
+			this.tryAgain.setHidden(true)
+			this.nextLevel.setHidden(true)
 			this.gameLayer.setHidden(true)
+			this.tutorialLayer.setHidden(true)
+			this.arrowLayer.setHidden(true)
 			this.uiLayer.setHidden(true)
-
-			this.cutscene1Layer.setHidden(false)
-			this.cutsceneScreen = 1;
+			this.pathdotLayer.setHidden(true)
+			this.levelSelect.setHidden(true);
+            this.controls.setHidden(true);
+            this.about.setHidden(true);
+			this.mainMenu.setHidden(false)
 		}
 
-		this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
+		// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "music", loop: true, holdReference: true});
 	}
 
 	updateScene(deltaT: number){
@@ -215,7 +269,7 @@ export default class Base_Scene extends Scene {
 			this.pathdotTimer += deltaT;
 			if (this.pathdotTimer >= .25) {
 				let pathdot = this.add.graphic("RECT", "pathdot", {position: this.player.position.clone(), size: new Vec2(5, 5)})
-				pathdot.color = MainMenu.hardmodeSelected ? Color.RED : Color.YELLOW
+				pathdot.color = this.hardMode ? Color.RED : Color.YELLOW
 				this.pathDots.push(pathdot as Rect)
 				this.pathdotTimer = 0;
 			}
@@ -297,7 +351,6 @@ export default class Base_Scene extends Scene {
 		const paddedViewportSize = this.viewport.getHalfSize().scaled(2).add(this.WORLD_PADDING.scaled(2));
 	}
 
-	/* ########## START SCENE METHODS ########## */
 	/**
 	 * Creates and sets up our player object
 	 */
@@ -312,7 +365,7 @@ export default class Base_Scene extends Scene {
 		this.player.setCollisionShape(new Circle(Vec2.ZERO, 32))
 
 		// Adding a new layer just for the arrow
-		this.addLayer("arrow", 6);
+		this.arrowLayer = this.addLayer("arrow", 6);
 		this.arrow = this.add.sprite("arrow", "arrow")
 		this.arrow.isCollidable = false;
 		this.arrow.visible = false;
@@ -371,7 +424,7 @@ export default class Base_Scene extends Scene {
 
 		// Level Number
 		this.levelNumberLabel = <Label>this.add.uiElement(UIElementType.LABEL, "gameUi", {position: new Vec2(30, 40), text: this.levelNumber > 0 ? "Level " + this.levelNumber : "Tutorial Level"});
-        this.levelNumberLabel.textColor = MainMenu.hardmodeSelected ? Color.RED : Color.YELLOW
+        this.levelNumberLabel.textColor = this.hardMode ? Color.RED : Color.YELLOW
 		this.levelNumberLabel.setHAlign("left");
 
 		// Fire Button
@@ -399,11 +452,6 @@ export default class Base_Scene extends Scene {
 		retMenu.onClickEventId = GameEvents.TRY_AGAIN;
 	}
 
-	/**
-	 * Creates object pools for our items.
-	 * For more information on object pools, look here:
-	 * https://gameprogrammingpatterns.com/object-pool.html
-	 */
 	initializeObjectPools(): void {
 		// TESTA - Leaving this function in here in case we need to use it later. Maybe.
 	}
@@ -516,11 +564,250 @@ export default class Base_Scene extends Scene {
 		const starText = <Label>this.add.uiElement(UIElementType.LABEL, "tutorial", {position: new Vec2(center.x, 310), text: "Stars don't emit gravity"});
         starText.textColor = Color.WHITE;
 
+		const damageText = <Label>this.add.uiElement(UIElementType.LABEL, "tutorial", {position: new Vec2(center.x-200, 355), text: "Colliding with either will destroy your planet!"});
+        damageText.textColor = Color.WHITE;
+
 		const wrmText = <Label>this.add.uiElement(UIElementType.LABEL, "tutorial", {position: new Vec2(center.x+370, 310), text: "Wormholes teleport you"});
         wrmText.textColor = Color.WHITE;
 
 		const crapText = <Label>this.add.uiElement(UIElementType.LABEL, "tutorial", {position: new Vec2(center.x, center.y+250), text: "Drag the cursor to aim. Press fire to shoot!"});
         crapText.textColor = Color.WHITE;
+	}
+
+	initializeMenuLayers(): void {
+		// this.logo = this.add.animatedSprite("logo_text", "primary");
+        // this.logo.position = new Vec2(this.viewport.getCenter().x, this.viewport.getCenter().y - 100)
+		// this.logo.scale = new Vec2(5, 5);
+        // this.logo.animation.play("idle")
+	
+		/**
+         * THE MAIN MENU
+         */
+        this.mainMenu = this.addUILayer("mainMenu");
+		const center = this.viewport.getCenter();
+
+        const name = <Label>this.add.uiElement(UIElementType.LABEL, "mainMenu", {position: new Vec2(center.x, center.y - 150), text: "Space Billiards"});
+        name.fontSize = 100;
+        name.textColor = Color.WHITE;
+
+        // Add play button, and give it an event to emit on press
+        const play = this.add.uiElement(UIElementType.BUTTON, "mainMenu", {position: new Vec2(center.x, center.y + 50), text: "Level Select"});
+        play.size.set(200, 50);
+        play.borderWidth = 2;
+        play.borderColor = Color.WHITE;
+        play.backgroundColor = Color.TRANSPARENT;
+        play.onClickEventId = GameEvents.LEVEL_SELECT;
+
+
+		// Add controls button
+        const controls = this.add.uiElement(UIElementType.BUTTON, "mainMenu", {position: new Vec2(center.x, center.y + 150), text: "Controls"});
+        controls.size.set(200, 50);
+        controls.borderWidth = 2;
+        controls.borderColor = Color.WHITE;
+        controls.backgroundColor = Color.TRANSPARENT;
+        controls.onClickEventId = GameEvents.CONTROLS;
+
+        // Add event button
+        const about = this.add.uiElement(UIElementType.BUTTON, "mainMenu", {position: new Vec2(center.x, center.y + 250), text: "About"});
+        about.size.set(200, 50);
+        about.borderWidth = 2;
+        about.borderColor = Color.WHITE;
+        about.backgroundColor = Color.TRANSPARENT;
+        about.onClickEventId = GameEvents.ABOUT;
+
+
+
+        /**
+         * THE LEVEL SELECT MENU
+         */
+        this.levelSelect = this.addUILayer("levelSelect");
+        this.levelSelect.setHidden(true)
+
+        
+
+        // Add level1 button
+        const level1 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[0], text: "Level 1"});
+        level1.size.set(200, 100);
+        level1.borderWidth = 2;
+        level1.borderColor = Color.WHITE;
+        level1.backgroundColor = Color.BLACK;
+        level1.onClickEventId = GameEvents.LEVEL1;
+
+        const level2 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[1], text: "Level 2"});
+        level2.size.set(200, 100);
+        level2.borderWidth = 2;
+        level2.borderColor = Color.WHITE;
+        level2.backgroundColor = Color.BLACK;
+        level2.onClickEventId = GameEvents.LEVEL2;
+
+        const level3 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[2], text: "Level 3"});
+        level3.size.set(200, 100);
+        level3.borderWidth = 2;
+        level3.borderColor = Color.WHITE;
+        level3.backgroundColor = Color.BLACK;
+        level3.onClickEventId = GameEvents.LEVEL3;
+
+        const level4 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[3], text: "Level 4"});
+        level4.size.set(200, 100);
+        level4.borderWidth = 2;
+        level4.borderColor = Color.WHITE;
+        level4.backgroundColor = Color.BLACK;
+        level4.onClickEventId = GameEvents.LEVEL4;
+
+        const level5 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[4], text: "Level 5"});
+        level5.size.set(200, 100);
+        level5.borderWidth = 2;
+        level5.borderColor = Color.WHITE;
+        level5.backgroundColor = Color.BLACK;
+        level5.onClickEventId = GameEvents.LEVEL5;
+
+        const level6 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[5], text: "Level 6"});
+        level6.size.set(200, 100);
+        level6.borderWidth = 2;
+        level6.borderColor = Color.WHITE;
+        level6.backgroundColor = Color.BLACK;
+        level6.onClickEventId = GameEvents.LEVEL6;
+
+        const level7 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[6], text: "Level 7"});
+        level7.size.set(200, 100);
+        level7.borderWidth = 2;
+        level7.borderColor = Color.WHITE;
+        level7.backgroundColor = Color.BLACK;
+        level7.onClickEventId = GameEvents.LEVEL7;
+
+        const level8 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[7], text: "Level 8"});
+        level8.size.set(200, 100);
+        level8.borderWidth = 2;
+        level8.borderColor = Color.WHITE;
+        level8.backgroundColor = Color.BLACK;
+        level8.onClickEventId = GameEvents.LEVEL8;
+
+        const level9 = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: this.LevelButtonPositions[8], text: "Level 9"});
+        level9.size.set(200, 100);
+        level9.borderWidth = 2;
+        level9.borderColor = Color.WHITE;
+        level9.backgroundColor = Color.BLACK;
+        level9.onClickEventId = GameEvents.LEVEL9;
+
+        const level10 = this.add.uiElement(UIElementType.BUTTON, "levelSelect",  {position: this.LevelButtonPositions[9], text: "Level 10"});
+        level10.size.set(200, 100);
+        level10.borderWidth = 2;
+        level10.borderColor = Color.WHITE;
+        level10.backgroundColor = Color.BLACK;
+        level10.onClickEventId = GameEvents.LEVEL10;
+
+
+        //Constructing the LevelArray for use with the page feature
+        this.levelButtons.push(level1)
+        this.levelButtons.push(level2)
+        this.levelButtons.push(level3)
+        this.levelButtons.push(level4)
+        this.levelButtons.push(level5)
+        this.levelButtons.push(level6)
+        this.levelButtons.push(level7)
+        this.levelButtons.push(level8)
+        this.levelButtons.push(level9)
+        this.levelButtons.push(level10)
+
+
+        // Add menu button
+        const menu = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x-180, center.y-300), text: "Main Menu"});
+        menu.size.set(200, 50);
+        menu.borderWidth = 2;
+        menu.borderColor = Color.WHITE;
+        menu.backgroundColor = Color.BLACK;
+        menu.onClickEventId = GameEvents.MENU;
+
+        // Add tutorial button
+        const tutorial = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x+180, center.y-300), text: "Tutorial"});
+        tutorial.size.set(200, 50);
+        tutorial.borderWidth = 2;
+        tutorial.borderColor = Color.WHITE;
+        tutorial.backgroundColor = Color.BLACK;
+        tutorial.onClickEventId = GameEvents.TUTORIAL;
+
+        // Add hard mode option
+        this.hardmodeOpt = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x, center.y+300), text: "Hard Mode"});
+        this.hardmodeOpt.size.set(180, 50);
+        this.hardmodeOpt.borderWidth = 2;
+        this.hardmodeOpt.borderColor = Color.WHITE;
+        this.hardmodeOpt.backgroundColor = Color.BLACK;
+        this.hardmodeOpt.onClickEventId = GameEvents.HARDMODE;
+
+        //Add Page forward Button
+        const pageForward = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x + 300, center.y+300), text: "Next Page"})
+        pageForward.size.set(180, 50);
+        pageForward.borderWidth = 2;
+        pageForward.borderColor = Color.WHITE;
+        pageForward.backgroundColor = Color.BLACK;
+        pageForward.onClickEventId = GameEvents.PAGE_FORWARD;
+
+        //Add Page forward Button
+        const pageBackward = this.add.uiElement(UIElementType.BUTTON, "levelSelect", {position: new Vec2(center.x - 300, center.y+300), text: "Prev Page"})
+        pageBackward.size.set(180, 50);
+        pageBackward.borderWidth = 2;
+        pageBackward.borderColor = Color.WHITE;
+        pageBackward.backgroundColor = Color.BLACK;
+        pageBackward.onClickEventId = GameEvents.PAGE_BACKWARD;
+
+        /**
+         * THE CONTROL SCREEN
+         */
+		// this.dragDiagram = this.add.sprite("drag_diagram", "background");
+		// this.dragDiagram.position.copy(this.viewport.getCenter());
+		// this.dragDiagram.position.add(new Vec2(-200, 0));
+		// let dScale = 1.5;
+		// this.dragDiagram.scale = new Vec2(dScale, dScale);
+		// this.dragDiagram.visible = false;
+
+        // Controls screen
+        this.controls = this.addUILayer("controls");
+        this.controls.setHidden(true);
+
+        const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 100), text: "Controls"});
+        header.textColor = Color.WHITE;
+
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y), text: "Hold Left Click and Drag to Aim"});
+        ws.textColor = Color.WHITE;
+        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y + 50), text: "Click the 'Fire!' button to fire"});
+        ad.textColor = Color.WHITE;
+        const back = this.add.uiElement(UIElementType.BUTTON, "controls", {position: new Vec2(center.x, center.y + 200), text: "Back"});
+
+        back.size.set(200, 50);
+        back.borderWidth = 2;
+        back.borderColor = Color.WHITE;
+        back.backgroundColor = Color.TRANSPARENT;
+        back.onClickEventId = GameEvents.MENU;
+
+
+
+        /**
+         * THE ABOUT SCREEN
+         */
+        this.about = this.addUILayer("about");
+        this.about.setHidden(true);
+
+        const aboutHeader = <Label>this.add.uiElement(UIElementType.LABEL, "about", {position: new Vec2(center.x, center.y - 150), text: "About"});
+        aboutHeader.textColor = Color.WHITE;
+
+        const text1 = "This game was created by Getty Lee Testa, Gleb Koslov, and Aidan Foley";
+        const text2 = "using the Wolfie2D game engine, a TypeScript game engine created by";
+        const text3 = "Joe Weaver and Richard McKenna.";
+
+        const line1 = <Label>this.add.uiElement(UIElementType.LABEL, "about", {position: new Vec2(center.x, center.y), text: text1});
+        const line2 = <Label>this.add.uiElement(UIElementType.LABEL, "about", {position: new Vec2(center.x, center.y + 50), text: text2});
+        const line3 = <Label>this.add.uiElement(UIElementType.LABEL, "about", {position: new Vec2(center.x, center.y + 100), text: text3});
+
+        line1.textColor = Color.WHITE;
+        line2.textColor = Color.WHITE;
+        line3.textColor = Color.WHITE;
+
+        const aboutBack = this.add.uiElement(UIElementType.BUTTON, "about", {position: new Vec2(center.x, center.y + 250), text: "Back"});
+        aboutBack.size.set(200, 50);
+        aboutBack.borderWidth = 2;
+        aboutBack.borderColor = Color.WHITE;
+        aboutBack.backgroundColor = Color.TRANSPARENT;
+        aboutBack.onClickEventId = GameEvents.MENU;
 	}
 
 	resetLevel(levelNumber: number): void {
@@ -543,7 +830,7 @@ export default class Base_Scene extends Scene {
 
 	switchLevel(levelNumber: number): void {
 		var level : Level = Levels.getLevel(this.viewport, levelNumber);
-		this.levelNumberLabel.text = "Level " + levelNumber
+		this.levelNumberLabel.text = levelNumber ? "Level " + levelNumber : "Tutorial Level"
 
 		// Reset the pathdots
 		while (this.pathDots.length != 0) {
@@ -624,12 +911,12 @@ export default class Base_Scene extends Scene {
 	}
 
 	handleCutscene(deltaT: number): void {
-		if (this.levelNumber == 0 && this.cutsceneTimer > 16) {
+		if (this.levelNumber == 0 && this.cutsceneTimer > 20) {
 			this.cutsceneOver = true;
 			this.tutorialLayer.setHidden(false)
 			return
 		}
-		if (this.levelNumber !== 0 || this.cutsceneTimer > 16) {
+		if (this.levelNumber !== 0 || this.cutsceneTimer > 20) {
 			this.cutsceneOver = true;
 			this.tutorialLayer.setHidden(true)
 			return
@@ -644,9 +931,9 @@ export default class Base_Scene extends Scene {
 		} else if (this.cutsceneTimer > 10 && this.cutsceneScreen == 2) {
 			this.cutscene1Layer.setHidden(true)
 			this.cutscene2Layer.setHidden(false)
-			this.csTransition.tweens.play("fadeOut")
+			//this.csTransition.tweens.play("fadeOut")
 		} else if (this.cutsceneTimer > 8 && this.cutsceneScreen == 1) {
-			this.csTransition.tweens.play("fadeIn")
+			//this.csTransition.tweens.play("fadeIn")
 			this.cutsceneScreen = 2
 		}
 	}
@@ -679,11 +966,13 @@ export default class Base_Scene extends Scene {
 			} else if (event.type === GameEvents.PLANET_OOB) {
 				this.playerDead = true;
             } else if (event.type === GameEvents.LEVEL_FAIL) {
+				this.resetLevel(this.levelNumber)
 				this.tryAgain.setHidden(false)
 				this.gameLayer.setHidden(true)
 				this.uiLayer.setHidden(true)
 				this.tutorialLayer.setHidden(true)
 				this.pathdotLayer.setHidden(true)
+				this.playerDead = true;
 			} else if (event.type === GameEvents.LEVEL_PASS) {
 				this.nextLevel.setHidden(false)
 				this.gameLayer.setHidden(true)
@@ -691,8 +980,19 @@ export default class Base_Scene extends Scene {
 				this.uiLayer.setHidden(true)
 				this.pathdotLayer.setHidden(true)
 			} else if (event.type === GameEvents.MENU) {
-				this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
-				this.sceneManager.changeToScene(MainMenu)
+				// this.emitter.fireEvent(GameEventType.STOP_SOUND, {key: "music"})
+				this.tryAgain.setHidden(true)
+				this.nextLevel.setHidden(false)
+				this.gameLayer.setHidden(true)
+				this.tutorialLayer.setHidden(true)
+				this.uiLayer.setHidden(true)
+				this.pathdotLayer.setHidden(true)
+				this.mainMenu.setHidden(false)
+				this.levelSelect.setHidden(true);
+                this.controls.setHidden(true);
+                this.about.setHidden(true);
+				// this.logo.visible = true;
+				// this.dragDiagram.visible = false;
 			} else if (event.type === GameEvents.NEXT_LEVEL) {
 				this.levelNumber += 1
 				this.switchLevel(this.levelNumber)
@@ -701,10 +1001,10 @@ export default class Base_Scene extends Scene {
 				this.pathdotLayer.setHidden(false)
 				this.nextLevel.setHidden(true)
 			} else if (event.type === GameEvents.TRY_AGAIN) {
-				this.resetLevel(this.levelNumber)
 				if (this.levelNumber == 0) {
 					this.tutorialLayer.setHidden(false)
 				}
+				this.resetLevel(this.levelNumber)
 				this.pauseLayer.setHidden(true)
 				this.paused = false;
 				(<CuePlayerController>this.player._ai).paused = false;
@@ -715,15 +1015,155 @@ export default class Base_Scene extends Scene {
 			} else if (event.type === GameEvents.PAUSE) {
 				if (this.paused) {
 					this.pauseLayer.setHidden(true)
+					this.levelNumber == 0 ? this.tutorialLayer.setHidden(false) : this.levelNumber;
 					this.paused = false;
 					(<CuePlayerController>this.player._ai).paused = false;
 				} else {
 					this.pauseLayer.setHidden(false)
+					this.tutorialLayer.setHidden(true)
 					this.paused = true;
 					(<CuePlayerController>this.player._ai).paused = true;
 				}
 			}
+			if (event.type === GameEvents.HARDMODE) {
+                if (this.hardMode) {
+                    this.hardmodeOpt.backgroundColor = Color.BLACK
+                    this.hardMode = false
+                } else {
+                    this.hardmodeOpt.backgroundColor = Color.RED
+                    this.hardMode = true
+                }
+            }
+			if (event.type === GameEvents.PAGE_FORWARD){
+                //Add logic for moving the original buttons to -5000, -5000
+                if(this.levelIndex + 9 < this.levelButtons.length){
+                    console.log("I'm here!")
+                    for(let i  = 0; i < Math.min(9, this.levelButtons.length - this.levelIndex); i++)
+                    {
+                        this.levelButtons[i + this.levelIndex].position = this.LevelButtonPositions[9]
+                    }
+                    this.levelIndex += 9
+                    for(let i = 0; i < this.levelButtons.length - this.levelIndex; i++)
+                    {
+                        this.levelButtons[i + this.levelIndex].position = this.LevelButtonPositions[i]
+                    }
+                }
+            }
+            if (event.type === GameEvents.PAGE_BACKWARD) {
+                //Add logic for moving the original buttons to -5000, -5000
+                if(this.levelIndex != 0) {
+                    console.log("I'm here!")
+                    for(let i  = 0; i < Math.min(9, this.levelButtons.length - this.levelIndex); i++)
+                    {
+                        this.levelButtons[i + this.levelIndex].position = this.LevelButtonPositions[9]
+                    }
+                    this.levelIndex -= 9
+                    for(let i = 0; i < Math.min(9, this.levelButtons.length - this.levelIndex); i++)
+                    {
+                        this.levelButtons[i + this.levelIndex].position = this.LevelButtonPositions[i]
+                    }
+                }
+            }
+			if(event.type === GameEvents.CONTROLS){
+                this.controls.setHidden(false);
+                this.mainMenu.setHidden(true);
+				// this.logo.visible = false;
+				// this.dragDiagram.visible = true;
+            }
+
+            if(event.type === GameEvents.ABOUT){
+                this.about.setHidden(false);
+                this.mainMenu.setHidden(true);
+				// this.logo.visible = false;
+				// this.dragDiagram.visible = false;
+            }
+
+            if(event.type === GameEvents.MENU){
+                this.mainMenu.setHidden(false);
+				this.pauseLayer.setHidden(true)
+				this.arrowLayer.setHidden(true);
+                this.levelSelect.setHidden(true);
+                this.controls.setHidden(true);
+                this.about.setHidden(true);
+				this.nextLevel.setHidden(true);
+				this.tryAgain.setHidden(true);
+				// this.logo.visible = true;
+				// this.dragDiagram.visible = false;
+            }
+
+			if(event.type === GameEvents.LEVEL_SELECT){
+				this.levelSelect.setHidden(false)
+				this.mainMenu.setHidden(true);
+				// this.logo.visible = false;
+			}
+
+			if(event.type === GameEvents.TUTORIAL){
+				this.levelNumber = 0;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+				this.backgroundLayer.setHidden(true)
+				this.gameLayer.setHidden(true)
+				this.uiLayer.setHidden(true)
+
+				this.cutscene1Layer.setHidden(false)
+				this.cutsceneScreen = 1;
+				this.cutsceneOver = false
+
+			}
+			if (event.type === GameEvents.LEVEL1){
+				this.levelNumber = 1;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+            } else if(event.type === GameEvents.LEVEL2){
+				this.levelNumber = 2;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+            } else if(event.type === GameEvents.LEVEL3){
+				this.levelNumber = 3;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+            } else if(event.type === GameEvents.LEVEL4){
+				this.levelNumber = 4;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+            } else if(event.type === GameEvents.LEVEL5){
+				this.levelNumber = 5;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			} else if(event.type === GameEvents.LEVEL6){
+				this.levelNumber = 6;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			} else if(event.type === GameEvents.LEVEL7){
+				this.levelNumber = 7;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			} else if(event.type === GameEvents.LEVEL8){
+				this.levelNumber = 8;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			} else if(event.type === GameEvents.LEVEL9){
+				this.levelNumber = 9;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			} else if(event.type === GameEvents.LEVEL10){
+				this.levelNumber = 10;
+				this.switchLevel(this.levelNumber)
+				this.gameplaySceneSwitch()
+			}
 		}
+	}
+
+	gameplaySceneSwitch() {
+		this.gameLayer.setHidden(false)
+		this.arrowLayer.setHidden(false);
+		this.uiLayer.setHidden(false)
+		this.pathdotLayer.setHidden(false)
+		this.nextLevel.setHidden(true)
+		this.levelSelect.setHidden(true);
+		this.mainMenu.setHidden(true)
+		this.paused = false;
+		(<CuePlayerController>this.player._ai).paused = false;
 	}
 
 	handleCollisions(){
