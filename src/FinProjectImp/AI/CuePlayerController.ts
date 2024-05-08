@@ -35,6 +35,9 @@ export default class CuePlayerController implements AI {
 	// If the fire button was pressed
 	public didFire: boolean = false;
 
+	// Boolean to represent whether the initial drag was close enough or not
+	private mouseClose: boolean = true;
+
 	public paused = false;
 
 	initializeAI(owner: AnimatedSprite, options: Record<string, any>): void {
@@ -100,6 +103,9 @@ export default class CuePlayerController implements AI {
 			if (!this.mouseDragging) {
 				this.mouseDragging = true
 				this.mouseStart = Input.getGlobalMousePosition()
+				if (this.owner.position.distanceTo(this.mouseStart) > 300) {
+					this.mouseClose = false;
+				}
 			} else {
 				this.mouseEnd = Input.getGlobalMousePosition()
 				let distX
@@ -193,7 +199,7 @@ export default class CuePlayerController implements AI {
 			}
 		} else if (this.mouseDragging) {
 			this.mouseDragging = false
-			this.directionArrow.visible = true
+			this.directionArrow.visible = true;
 		}
 		if (this.didFire) {
 			this.directionArrow.visible = false;

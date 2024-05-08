@@ -27,6 +27,10 @@ import { EaseFunctionType } from "../../Wolfie2D/Utils/EaseFunctions";
 // This is to avoid having to port over all the crap
 // Essentially just making level files
 
+interface IGC {
+	mass: number;
+	circle: Sprite;
+}
 
 /**
  * In Wolfie2D, custom scenes extend the original scene class.
@@ -52,8 +56,12 @@ export default class Base_Scene extends Scene {
 
 	private stars: Array<AnimatedSprite> = new Array();
 
+	// Represents the outer gravcircles
+	private gravCircles: Array<Sprite> = new Array();
+	// Represents the moving gravcircles
+	// private innerGravCircles: Array<IGC> = new Array();
+
 	// TESTA - IDK if we'll even do 2 planet gameplay so this might be unused
-	private planets: Array<AnimatedSprite> = new Array(2);
 	private wormholes: Array<AnimatedSprite> = new Array();
 	private wormholePairs: Array<WormholePair> = new Array();
 	private black_hole: AnimatedSprite;
@@ -90,7 +98,6 @@ export default class Base_Scene extends Scene {
 	private cutscene1Layer: Layer;
 	private cutscene2Layer: Layer;
 	private pauseLayer: Layer;
-	private warpLayer: Layer;
 	private arrowLayer: Layer;
 	private tutorialLayer: Layer;
 	private pathdotLayer: Layer;
@@ -147,9 +154,8 @@ export default class Base_Scene extends Scene {
 		//this.planetSprites = ["planet1", "planet2", "planet3"]
 		this.planetSprites = ["planet2"]
 
-		this.load.image("black_hole", "hw2_assets/sprites/black_hole.png")
 		this.load.image("arrow", "hw2_assets/sprites/arrow.png")
-		this.load.image("space_warp", "hw2_assets/sprites/space_warp.png")
+		this.load.image("gravity_circle", "hw2_assets/sprites/gravity_circle.png")
 
 		// Load in the sfx
 		this.load.audio("fire", "hw2_assets/sfx/fire.wav")
@@ -310,6 +316,21 @@ export default class Base_Scene extends Scene {
 			}
 		}
 
+		// // Update the gravity circles
+		// for (let igc of this.innerGravCircles) {
+		// 	if (this.playerDead || this.playerClearStage) {
+		// 		igc.circle.visible = false;
+		// 		igc.circle.scale.set(0,0)
+		// 		continue;
+		// 	} else {
+		// 		igc.circle.visible = true;
+		// 	}
+		// 	igc.circle.scale.add(new Vec2(deltaT/3, deltaT/3));
+		// 	if (igc.circle.scale.x > igc.mass/161) {
+		// 		igc.circle.scale.set(0,0)
+		// 	}
+		// }
+
 		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
 
 		this.handleCollisions();
@@ -391,6 +412,19 @@ export default class Base_Scene extends Scene {
 			currAsteroid.addAI(AsteroidAI)
 			currAsteroid.setCollisionShape(new Circle(Vec2.ZERO, 32*asteroid.mass/150));
 			this.asteroids.push(currAsteroid)
+
+			let currGravCircle = this.add.sprite("gravity_circle", "primary")
+			currGravCircle.position = asteroid.position
+			currGravCircle.scale.set(asteroid.mass/161,asteroid.mass/161)
+			this.gravCircles.push(currGravCircle)
+
+			// let currInnerGravCircle = this.add.sprite("gravity_circle", "primary")
+			// currInnerGravCircle.position = asteroid.position
+			// let igc: IGC = {
+			// 	mass: asteroid.mass,
+			// 	circle: currInnerGravCircle,
+			// }
+			// this.innerGravCircles.push(igc)
 		}
 
 		for (let star of level.stars) {
@@ -630,7 +664,7 @@ export default class Base_Scene extends Scene {
         play.size.set(200, 50);
         play.borderWidth = 2;
         play.borderColor = Color.WHITE;
-        play.backgroundColor = Color.TRANSPARENT;
+        play.backgroundColor = Color.BLACK;
         play.onClickEventId = GameEvents.LEVEL_SELECT;
 
 
@@ -639,7 +673,7 @@ export default class Base_Scene extends Scene {
         controls.size.set(200, 50);
         controls.borderWidth = 2;
         controls.borderColor = Color.WHITE;
-        controls.backgroundColor = Color.TRANSPARENT;
+        controls.backgroundColor = Color.BLACK;
         controls.onClickEventId = GameEvents.CONTROLS;
 
         // Add event button
@@ -647,7 +681,7 @@ export default class Base_Scene extends Scene {
         about.size.set(200, 50);
         about.borderWidth = 2;
         about.borderColor = Color.WHITE;
-        about.backgroundColor = Color.TRANSPARENT;
+        about.backgroundColor = Color.BLACK;
         about.onClickEventId = GameEvents.ABOUT;
 
 
@@ -863,19 +897,21 @@ export default class Base_Scene extends Scene {
         this.controls = this.addUILayer("controls");
         this.controls.setHidden(true);
 
-        const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 100), text: "Controls"});
+        const header = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y - 150), text: "Controls"});
         header.textColor = Color.WHITE;
 
-        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y), text: "Hold Left Click and Drag to Aim"});
+        const ws = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y-30), text: "Hold Left Click and Drag to Aim"});
         ws.textColor = Color.WHITE;
-        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y + 50), text: "Click the 'Fire!' button to fire"});
+        const ad = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y + 20), text: "Click the 'Fire!' button to fire"});
         ad.textColor = Color.WHITE;
+		const r = <Label>this.add.uiElement(UIElementType.LABEL, "controls", {position: new Vec2(center.x, center.y + 70), text: "Press R to restart"});
+        r.textColor = Color.WHITE;
         const back = this.add.uiElement(UIElementType.BUTTON, "controls", {position: new Vec2(center.x, center.y + 200), text: "Back"});
 
         back.size.set(200, 50);
         back.borderWidth = 2;
         back.borderColor = Color.WHITE;
-        back.backgroundColor = Color.TRANSPARENT;
+        back.backgroundColor = Color.BLACK;
         back.onClickEventId = GameEvents.MENU;
 
 
@@ -905,7 +941,7 @@ export default class Base_Scene extends Scene {
         aboutBack.size.set(200, 50);
         aboutBack.borderWidth = 2;
         aboutBack.borderColor = Color.WHITE;
-        aboutBack.backgroundColor = Color.TRANSPARENT;
+        aboutBack.backgroundColor = Color.BLACK;
         aboutBack.onClickEventId = GameEvents.MENU;
 	}
 
@@ -949,17 +985,36 @@ export default class Base_Scene extends Scene {
 			currAsteroid.animation.play("idle")
 			currAsteroid.addAI(AsteroidAI)
 			this.asteroids.push(currAsteroid)
+
+			let currGravCircle = this.add.sprite("gravity_circle", "primary")
+			this.gravCircles.push(currGravCircle)
+
+			// let currInnerGravCircle = this.add.sprite("gravity_circle", "background")
+			// let igc: IGC = {
+			// 	mass: 0,
+			// 	circle: currInnerGravCircle,
+			// }
+			// this.innerGravCircles.push(igc)
 		}
 		// Remove sprites from list if needed
 		// Bad way of doing this but I'm lazy
 		while (this.asteroids.length > level.asteroids.length) {
 			this.remove(this.asteroids.pop())
+			this.remove(this.gravCircles.pop())
+			// this.remove(this.innerGravCircles.pop().circle)
 		}
 		var i = 0;
 		for (let asteroid of level.asteroids) {
 			this.asteroids[i].position = asteroid.position
 			this.asteroids[i].scale.set(asteroid.mass/150, asteroid.mass/150)
 			this.asteroids[i].setCollisionShape(new Circle(Vec2.ZERO, 32*asteroid.mass/150));
+
+			this.gravCircles[i].position = asteroid.position;
+			this.gravCircles[i].scale.set(asteroid.mass/161,asteroid.mass/161)
+
+			// this.innerGravCircles[i].circle.position = asteroid.position
+			// this.innerGravCircles[i].mass = asteroid.mass
+			// this.innerGravCircles[i].circle.scale.set(0,0)
 			i++;
 		}
 
@@ -1425,12 +1480,12 @@ export default class Base_Scene extends Scene {
         // Send the visible set, tilemaps, and uiLayers to the renderer
         this.renderingManager.render(visibleSet, this.tilemaps, this.uiLayers);
 
-		var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
-		if (!this.playerClearStage && !this.playerDead && !this.hardMode && !this.paused && this.cutsceneOver && this.playing) {
-			for (let asteroid of level.asteroids) {
-				Debug.drawCircle(asteroid.position, asteroid.mass/1.25, false, Color.WHITE);
-			}
-		}
+		// var level : Level = Levels.getLevel(this.viewport, this.levelNumber);
+		// if (!this.playerClearStage && !this.playerDead && !this.hardMode && !this.paused && this.cutsceneOver && this.playing) {
+		// 	for (let asteroid of level.asteroids) {
+		// 		Debug.drawCircle(asteroid.position, asteroid.mass/1.25, false, Color.WHITE);
+		// 	}
+		// }
 
         let nodes = this.sceneGraph.getAllNodes();
         this.tilemaps.forEach(tilemap => tilemap.visible ? nodes.push(tilemap) : 0);
