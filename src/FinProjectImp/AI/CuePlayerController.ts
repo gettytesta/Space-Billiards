@@ -76,12 +76,10 @@ export default class CuePlayerController implements AI {
 		if(event.type === GameEvents.FIRE_BALL)
 		{
 			if (this.trajectorySet) {
-				if (this.mouseStart.distanceTo(this.mouseEnd) > 50 || true) {
-					// There will definitely be a sound for this but not here
-					// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "fire", loop: false, holdReference: false});
-					this.didFire = true;
-					this.directionArrow.visible = false
-				}
+				// There will definitely be a sound for this but not here
+				// this.emitter.fireEvent(GameEventType.PLAY_SOUND, {key: "fire", loop: false, holdReference: false});
+				this.didFire = true;
+				this.directionArrow.visible = false
 			}
 		}
 		if(event.type === GameEvents.PLAY_GAME){
@@ -192,9 +190,7 @@ export default class CuePlayerController implements AI {
 					}
 				}
 				this.directionArrow.rotation = angle - Math.PI/2;
-				if (distX > 50 || distY > 50) {
-					this.trajectorySet = true;
-				}
+				this.trajectorySet = true;
 				this.assignedVelocity.scale(1.7);
 			}
 		} else if (this.mouseDragging) {

@@ -15,6 +15,10 @@ import Base_Scene from "./FinProjectImp/Scenes/Base_Scene";
     let options = {
         canvasSize: {x: 1200, y: 800},          // The size of the game
         clearColor: {r: 0.1, g: 0.1, b: 0.1},   // The color the game clears to
+        inputs: [
+            {name: "restart", keys: ["r"]},
+            {name: "fire", keys: ["space"]}
+        ],
         useWebGL: true,                        // Tell the game we want to use webgl
         showDebug: false                       // Whether to show debug messages. You can change this to true if you want
     }

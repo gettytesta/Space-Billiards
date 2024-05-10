@@ -7,8 +7,8 @@
 	"rightBuffer": 0,
 	"topBuffer": 0,
 	"bottomBuffer": 0,
-	"columns": 7,
-	"rows": 7,
+	"columns": 8,
+	"rows": 8,
 	"animations": [
 		{
 			"name": "idle",
@@ -208,6 +208,66 @@
 				},
 				{
 					"index": 48,
+					"duration": 4
+				},
+				{
+					"index": 49,
+					"duration": 4
+				},
+				{
+					"index": 50,
+					"duration": 4
+				},
+				{
+					"index": 51,
+					"duration": 4
+				},
+				{
+					"index": 52,
+					"duration": 4
+				},
+				{
+					"index": 53,
+					"duration": 4
+				},
+				{
+					"index": 54,
+					"duration": 4
+				},
+				{
+					"index": 55,
+					"duration": 4
+				},
+				{
+					"index": 56,
+					"duration": 4
+				},
+				{
+					"index": 57,
+					"duration": 4
+				},
+				{
+					"index": 58,
+					"duration": 4
+				},
+				{
+					"index": 59,
+					"duration": 4
+				},
+				{
+					"index": 60,
+					"duration": 4
+				},
+				{
+					"index": 61,
+					"duration": 4
+				},
+				{
+					"index": 62,
+					"duration": 4
+				},
+				{
+					"index": 63,
 					"duration": 4
 				}
 			]
